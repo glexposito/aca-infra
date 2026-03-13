@@ -162,3 +162,15 @@ Only **after** `terragrunt destroy` has successfully completed and verified the 
     ```
 2.  Update your CI/CD pipelines (e.g., `.github/workflows/*.yml`) to remove any references or matrix targets pointing to the deleted environment.
 3.  Commit and push the changes.
+
+---
+
+## Dependencies and Mock Outputs
+
+Because the Application (`status-page-updater`) depends on the Platform (`env-platform`), it uses a Terragrunt `dependency` block to fetch the necessary resource IDs.
+
+Splitting modules into separate "stacks" (Platform vs Application) fundamentally changes how Terraform calculates its dependency graph. In a monolithic module, Terraform knows it will create all resources and can internally mark future IDs as `(known after apply)`. However, when separated, Terraform cannot natively read across different state files during a "Cold Start" (when the Platform hasn't been deployed yet).
+
+If you attempt to run `terragrunt plan` on the Application during a cold start, Terraform will crash because it expects a cluster ID but receives null from the unapplied Platform state.
+
+To solve this, Terragrunt's `mock_outputs` feature is the industry-standard design pattern. It provides dummy strings purely for Terraform's validation and planning phase. Once the Platform is actually deployed (`terragrunt apply`), Terragrunt automatically ignores the mocks and passes the real Azure IDs to the Application.
