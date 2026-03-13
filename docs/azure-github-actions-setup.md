@@ -11,7 +11,7 @@ This layout follows a common Terragrunt split:
 
 In this repo:
 
-- `modules/aca-status-page-updater`: reusable Azure Container Apps module
+- `modules/aca-app`: reusable Azure Container Apps module
 - `live/dev/status-page-updater`: dev deployment
 - `live/stg/status-page-updater`: staging deployment
 - `live/prod/status-page-updater`: production deployment
@@ -25,7 +25,7 @@ Azure resource names follow this pattern:
 
 Current conventions in this repo:
 
-- service token: `spu`
+- service token: `myapp`
 - region code: `aue`
 
 `live` is a standard Terragrunt convention. It means these stacks are the concrete deployments, not reusable building blocks.
@@ -256,9 +256,9 @@ Environment-level secret:
 Environment-level variables:
 
 - `AZURE_LOCATION`
-- `STATUS_PAGE_UPDATER_IMAGE`
-- `STATUS_PAGE_UPDATER_REGISTRY_SERVER` (optional)
-- `STATUS_PAGE_UPDATER_ACR_ID` (optional)
+- `MYAPP_IMAGE`
+- `MYAPP_REGISTRY_SERVER` (optional)
+- `MYAPP_ACR_ID` (optional)
 - `TERRAFORM_VERSION` (optional)
 - `TERRAGRUNT_VERSION` (optional)
 
@@ -278,7 +278,7 @@ export TG_STATE_RESOURCE_GROUP="<state-rg>"
 export TG_STATE_STORAGE_ACCOUNT="<state-storage-account>"
 export TG_STATE_CONTAINER="tfstate"
 
-export STATUS_PAGE_UPDATER_IMAGE="ghcr.io/example/status-page-updater:dev"
+export MYAPP_IMAGE="ghcr.io/example/myapp:dev"
 export STATUSPAGE_API_KEY="replace-me"
 
 cd live/dev/status-page-updater

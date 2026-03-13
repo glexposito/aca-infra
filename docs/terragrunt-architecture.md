@@ -18,7 +18,7 @@ live/
 *   **Subscription (`live/non-prod/`, `live/prod/`):** Represents the Azure Subscription boundary. This provides the highest level of isolation for security and billing. Contains a `subscription.hcl` file.
 *   **Region (`australiaeast/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
 *   **Environment (`dev/`, `stg/`, `prod/`):** The logical deployment stage. Contains an `env.hcl` file.
-*   **Service (`status-page-updater/`):** The actual Terragrunt configuration (`terragrunt.hcl`) that calls a Terraform module to deploy a specific stack or application.
+*   **Service (`status-page-updater/`):** The actual Terragrunt configuration (`terragrunt.hcl`) that calls a Terraform module to deploy a specific stack or application. The folder name is still `status-page-updater` until the Terraform state is migrated.
 
 ### Example Layout
 
@@ -57,14 +57,14 @@ live/
 2.  **DRY Variable Inheritance:** Leaf configurations use Terragrunt's `read_terragrunt_config()` function to dynamically pull values from the `.hcl` files above them in the directory tree. This means `location` and `environment` never have to be hardcoded in the child modules, completely eliminating repetition and preventing copy-paste errors.
 3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying platform from the applications that run on it.
     *   **The Platform (`env-platform`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster).
-    *   **The Application (`status-page-updater`):** Acts as the "Tenant." It represents a single microservice. It uses a Terragrunt `dependency` block to ask the platform for its IDs, and then deploys a specific container image into that shared cluster. 
+    *   **The Application (`myapp`):** Acts as the "Tenant." It represents a single microservice. It uses a Terragrunt `dependency` block to ask the platform for its IDs, and then deploys a specific container image into that shared cluster. 
     
     *Example:* If you need to add a second microservice (e.g., `user-api`), you simply add a new application folder next to the others. It will automatically deploy into the existing `env-platform`, significantly reducing Azure costs and simplifying architecture:
 
     ```text
     live/non-prod/australiaeast/dev/
     ├── env-platform/            <-- (Landlord: Provisions cluster once)
-    ├── status-page-updater/     <-- (Tenant 1: Deploys into cluster)
+    ├── status-page-updater/     <-- (Tenant 1: myapp deploys into cluster)
     └── user-api/                <-- (Tenant 2: NEW! Deploys into cluster)
     ```
 
@@ -76,7 +76,7 @@ The biggest advantage of this structure is how easy it is to scale.
 
 ### Scenario: Adding a New Region (e.g., Europe)
 
-If you need to deploy the `prod` environment for the `status-page-updater` to a new region like Europe (`westeurope` in Azure), you simply replicate the folder structure.
+If you need to deploy the `prod` environment for `myapp` to a new region like Europe (`westeurope` in Azure), you simply replicate the folder structure.
 
 **Step 1: Create the new region and environment directories.**
 Navigate to the appropriate subscription (e.g., `prod`) and create the new region folder, followed by the environment folder.
@@ -167,7 +167,7 @@ Only **after** `terragrunt destroy` has successfully completed and verified the 
 
 ## Dependencies and Mock Outputs
 
-Because the Application (`status-page-updater`) depends on the Platform (`env-platform`), it uses a Terragrunt `dependency` block to fetch the necessary resource IDs.
+Because the Application (`myapp`) depends on the Platform (`env-platform`), it uses a Terragrunt `dependency` block to fetch the necessary resource IDs.
 
 Splitting modules into separate "stacks" (Platform vs Application) fundamentally changes how Terraform calculates its dependency graph. In a monolithic module, Terraform knows it will create all resources and can internally mark future IDs as `(known after apply)`. However, when separated, Terraform cannot natively read across different state files during a "Cold Start" (when the Platform hasn't been deployed yet).
 

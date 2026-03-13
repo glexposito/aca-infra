@@ -1,9 +1,9 @@
-name: Provision ACA Status Page Updater Infra
+name: Provision My App Infra
 
 on:
   pull_request:
     paths:
-      - ".github/workflows/provision-aca-status-page-updater-infra.yml"
+      - ".github/workflows/provision-myapp-infra.yml"
       - "terragrunt.hcl"
       - "modules/**"
       - "live/**"
@@ -96,7 +96,7 @@ jobs:
           - environment: prod-sea
             working_dir: live/prod/southeastasia/prod/status-page-updater
     concurrency:
-      group: status-page-updater-plan-${{ matrix.environment }}
+      group: myapp-plan-${{ matrix.environment }}
       cancel-in-progress: true
     defaults:
       run:
@@ -113,9 +113,9 @@ jobs:
       TG_STATE_STORAGE_ACCOUNT: ${{ vars.TG_STATE_STORAGE_ACCOUNT }}
       TG_STATE_CONTAINER: ${{ vars.TG_STATE_CONTAINER }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'australiaeast' }}
-      STATUS_PAGE_UPDATER_IMAGE: ${{ vars.STATUS_PAGE_UPDATER_IMAGE }}
-      STATUS_PAGE_UPDATER_REGISTRY_SERVER: ${{ vars.STATUS_PAGE_UPDATER_REGISTRY_SERVER }}
-      STATUS_PAGE_UPDATER_ACR_ID: ${{ vars.STATUS_PAGE_UPDATER_ACR_ID }}
+      MYAPP_IMAGE: ${{ vars.MYAPP_IMAGE }}
+      MYAPP_REGISTRY_SERVER: ${{ vars.MYAPP_REGISTRY_SERVER }}
+      MYAPP_ACR_ID: ${{ vars.MYAPP_ACR_ID }}
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
@@ -155,7 +155,7 @@ jobs:
         include: ${{ fromJson(needs.resolve-dispatch-targets.outputs.matrix) }}
     environment: ${{ matrix.environment }}
     concurrency:
-      group: status-page-updater-deploy-${{ matrix.environment }}
+      group: myapp-deploy-${{ matrix.environment }}
       cancel-in-progress: false
     defaults:
       run:
@@ -172,9 +172,9 @@ jobs:
       TG_STATE_STORAGE_ACCOUNT: ${{ vars.TG_STATE_STORAGE_ACCOUNT }}
       TG_STATE_CONTAINER: ${{ vars.TG_STATE_CONTAINER }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'australiaeast' }}
-      STATUS_PAGE_UPDATER_IMAGE: ${{ vars.STATUS_PAGE_UPDATER_IMAGE }}
-      STATUS_PAGE_UPDATER_REGISTRY_SERVER: ${{ vars.STATUS_PAGE_UPDATER_REGISTRY_SERVER }}
-      STATUS_PAGE_UPDATER_ACR_ID: ${{ vars.STATUS_PAGE_UPDATER_ACR_ID }}
+      MYAPP_IMAGE: ${{ vars.MYAPP_IMAGE }}
+      MYAPP_REGISTRY_SERVER: ${{ vars.MYAPP_REGISTRY_SERVER }}
+      MYAPP_ACR_ID: ${{ vars.MYAPP_ACR_ID }}
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout

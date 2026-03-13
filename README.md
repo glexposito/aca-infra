@@ -1,6 +1,6 @@
 # aca-infra
 
-Terragrunt/Terraform scaffold for deploying a containerized status-page updater to Azure Container Apps.
+Terragrunt/Terraform scaffold for deploying a containerized personal app to Azure Container Apps.
 
 This repository implements the [Gruntwork Terragrunt Reference Architecture](docs/terragrunt-architecture.md), utilizing a strict hierarchical layout (`subscription/region/environment/service`) to maximize configuration reuse (DRY) and strictly limit the blast radius of changes.
 
@@ -40,7 +40,7 @@ Azure naming conventions are generated dynamically based on the inherited folder
 - Log Analytics Workspace: `law-<service>-<env>-<region>`
 - Container App: `ca-<service>-<env>-<region>`
 
-*Current service token (`spu` for status page updater) and regions (`aue` for Australia East, `sea` for Southeast Asia).*
+*Current service token (`myapp`) and regions (`aue` for Australia East, `sea` for Southeast Asia).*
 
 ## Required Environment Variables
 
@@ -54,9 +54,9 @@ To run Terragrunt locally, you need the following Azure authentication and state
 
 ## Workload-Specific Environment Variables
 
-- `STATUS_PAGE_UPDATER_IMAGE`
-- `STATUS_PAGE_UPDATER_REGISTRY_SERVER` (optional)
-- `STATUS_PAGE_UPDATER_ACR_ID` (optional)
+- `MYAPP_IMAGE`
+- `MYAPP_REGISTRY_SERVER` (optional)
+- `MYAPP_ACR_ID` (optional)
 - `STATUSPAGE_API_KEY`
 
 ## Example Usage
@@ -72,7 +72,7 @@ terragrunt apply
 
 ## GitHub Actions CI/CD
 
-The workflow is located in [`.github/workflows/provision-aca-status-page-updater-infra.yml`](.github/workflows/provision-aca-status-page-updater-infra.yml).
+The workflow is located in [`.github/workflows/provision-myapp-infra.yml`](.github/workflows/provision-myapp-infra.yml).
 
 - **Pull Requests**: Automatically runs `terragrunt plan` against all defined environments.
 - **Manual Dispatch**: Allows applying changes to specific environments. Supports comma-separated targets such as `dev,stg`. Applying to multiple `prod-*` targets simultaneously is intentionally restricted to prevent cascading failures.
@@ -96,9 +96,9 @@ The workflow is located in [`.github/workflows/provision-aca-status-page-updater
 
 - `TERRAFORM_VERSION`
 - `TERRAGRUNT_VERSION`
-- `STATUS_PAGE_UPDATER_IMAGE`
-- `STATUS_PAGE_UPDATER_REGISTRY_SERVER`
-- `STATUS_PAGE_UPDATER_ACR_ID`
+- `MYAPP_IMAGE`
+- `MYAPP_REGISTRY_SERVER`
+- `MYAPP_ACR_ID`
 
 ### Recommended GitHub Setup
 
