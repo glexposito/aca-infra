@@ -156,11 +156,11 @@ jobs:
       STATUS_PAGE_UPDATER_ACR_ID: ${{ vars.STATUS_PAGE_UPDATER_ACR_ID }}
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
-      - name: Show deployment targets
-        run: echo "Running ${{ inputs.command }} for ${{ needs.resolve-dispatch-targets.outputs.display }}"
-
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Show deployment targets
+        run: echo "Running ${{ inputs.command }} for ${{ needs.resolve-dispatch-targets.outputs.display }}"
 
       - name: Azure login
         uses: azure/login@v2
