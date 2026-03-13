@@ -42,6 +42,8 @@ terragrunt apply
 ## GitHub Actions
 
 The workflow is in [`.github/workflows/deploy-status-page-updater.yml`](/home/guille/dev/aca-infra/.github/workflows/deploy-status-page-updater.yml).
+Detailed setup notes are in [docs/azure-github-actions-setup.md](/home/guille/dev/aca-infra/docs/azure-github-actions-setup.md).
+An Azure backend bootstrap helper is in [scripts/init-azure-state.sh](/home/guille/dev/aca-infra/scripts/init-azure-state.sh).
 
 Manual dispatch supports comma-separated targets such as `dev`, `stg`, `prod`, or `dev,stg`.
 `prod` apply is intentionally restricted to run by itself.
