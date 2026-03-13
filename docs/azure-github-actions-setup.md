@@ -303,8 +303,8 @@ The workflow intentionally rejects `apply` when `prod` is mixed with other envir
 
 This repo currently keeps:
 
-- `dev`: 4 days
-- `stg`: 4 days
+- `dev`: 30 days
+- `stg`: 30 days
 - `prod`: 30 days
 
 These are Log Analytics retention settings, not log volume caps.

@@ -11,8 +11,8 @@ Terragrunt/Terraform scaffold for deploying a containerized status-page updater 
 
 Current log retention:
 
-- `dev`: 4 days
-- `stg`: 4 days
+- `dev`: 30 days
+- `stg`: 30 days
 - `prod`: 30 days
 
 Azure naming convention used by the stacks:

@@ -13,7 +13,7 @@ inputs = {
   resource_group_name             = "rg-spu-dev-aue"
   container_app_environment_name  = "cae-spu-dev-aue"
   log_analytics_workspace_name    = "law-spu-dev-aue"
-  log_analytics_retention_in_days = 4
+  log_analytics_retention_in_days = 30
   container_app_name              = "ca-spu-dev-aue"
   container_image                 = get_env("STATUS_PAGE_UPDATER_IMAGE", "ghcr.io/example/status-page-updater:dev")
   registry_server                 = trimspace(get_env("STATUS_PAGE_UPDATER_REGISTRY_SERVER", "")) == "" ? null : trimspace(get_env("STATUS_PAGE_UPDATER_REGISTRY_SERVER", ""))
