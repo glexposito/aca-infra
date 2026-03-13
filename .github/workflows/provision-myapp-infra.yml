@@ -27,8 +27,9 @@ permissions:
   id-token: write
 
 jobs:
-  resolve-dispatch-targets:
+  prepare-deployment:
     if: github.event_name == 'workflow_dispatch'
+    name: Prepare Deployment
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.resolve.outputs.matrix }}
@@ -120,7 +121,7 @@ jobs:
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Azure login
         uses: azure/login@v2
@@ -130,15 +131,16 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ vars.TERRAFORM_VERSION || '1.6.6' }}
 
       - name: Setup Terragrunt
-        uses: gruntwork-io/terragrunt-action@v3
+        uses: jdx/mise-action@v4
         with:
-          tg_version: ${{ vars.TERRAGRUNT_VERSION || '0.82.2' }}
-          tf_path: terraform
+          version: 2025.12.12
+          tool_versions: |
+            terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.82.2' }}
 
       - name: Terragrunt init
         run: terragrunt init
@@ -148,13 +150,13 @@ jobs:
 
   deploy:
     if: github.event_name == 'workflow_dispatch'
-    needs: resolve-dispatch-targets
+    needs: prepare-deployment
     name: Deploy My App (${{ matrix.environment }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.resolve-dispatch-targets.outputs.matrix) }}
+        include: ${{ fromJson(needs.prepare-deployment.outputs.matrix) }}
     environment: ${{ matrix.environment }}
     concurrency:
       group: myapp-deploy-${{ matrix.environment }}
@@ -180,10 +182,10 @@ jobs:
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Show deployment targets
-        run: echo "Running ${{ inputs.command }} for ${{ needs.resolve-dispatch-targets.outputs.display }}"
+        run: echo "Running ${{ inputs.command }} for ${{ needs.prepare-deployment.outputs.display }}"
 
       - name: Azure login
         uses: azure/login@v2
@@ -193,15 +195,16 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ vars.TERRAFORM_VERSION || '1.6.6' }}
 
       - name: Setup Terragrunt
-        uses: gruntwork-io/terragrunt-action@v3
+        uses: jdx/mise-action@v4
         with:
-          tg_version: ${{ vars.TERRAGRUNT_VERSION || '0.82.2' }}
-          tf_path: terraform
+          version: 2025.12.12
+          tool_versions: |
+            terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.82.2' }}
 
       - name: Terragrunt init
         run: terragrunt init
