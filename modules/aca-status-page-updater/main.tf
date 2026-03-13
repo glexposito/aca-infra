@@ -51,7 +51,7 @@ resource "azurerm_container_app" "this" {
   }
 
   dynamic "secret" {
-    for_each = var.secret_environment_variables
+    for_each = nonsensitive(var.secret_environment_variables)
     content {
       name  = secret.value.secret_name
       value = secret.value.secret_value
@@ -77,7 +77,7 @@ resource "azurerm_container_app" "this" {
       }
 
       dynamic "env" {
-        for_each = var.secret_environment_variables
+        for_each = nonsensitive(var.secret_environment_variables)
         content {
           name        = env.key
           secret_name = env.value.secret_name
