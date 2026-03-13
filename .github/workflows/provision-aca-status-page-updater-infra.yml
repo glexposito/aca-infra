@@ -1,9 +1,9 @@
-name: Deploy Status Page Updater
+name: Provision ACA Status Page Updater Infra
 
 on:
   pull_request:
     paths:
-      - ".github/workflows/deploy-status-page-updater.yml"
+      - ".github/workflows/provision-aca-status-page-updater-infra.yml"
       - "terragrunt.hcl"
       - "modules/**"
       - "live/**"

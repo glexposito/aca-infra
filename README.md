@@ -41,7 +41,7 @@ terragrunt apply
 
 ## GitHub Actions
 
-The workflow is in [`.github/workflows/deploy-status-page-updater.yml`](/home/guille/dev/aca-infra/.github/workflows/deploy-status-page-updater.yml).
+The workflow is in [`.github/workflows/provision-aca-status-page-updater-infra.yml`](/home/guille/dev/aca-infra/.github/workflows/provision-aca-status-page-updater-infra.yml).
 Detailed setup notes are in [docs/azure-github-actions-setup.md](/home/guille/dev/aca-infra/docs/azure-github-actions-setup.md).
 An Azure backend bootstrap helper is in [scripts/init-azure-state.sh](/home/guille/dev/aca-infra/scripts/init-azure-state.sh).
 An Azure OIDC bootstrap helper is in [scripts/init-azure-oidc.sh](/home/guille/dev/aca-infra/scripts/init-azure-oidc.sh).
