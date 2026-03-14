@@ -1,10 +1,11 @@
 locals {
+  app_vars    = read_terragrunt_config("${dirname(find_in_parent_folders("root.hcl"))}/live/_shared/app.hcl")
   region_vars = read_terragrunt_config("${get_original_terragrunt_dir()}/../../region.hcl")
   env_vars    = read_terragrunt_config("${get_original_terragrunt_dir()}/../env.hcl")
 
   subscription_id    = get_env("AZURE_SUBSCRIPTION_ID", "00000000-0000-0000-0000-000000000000")
   env                = local.env_vars.locals.environment
-  name               = "myapp"
+  app_name           = local.app_vars.locals.app_name
   statuspage_api_key = trimspace(get_env("STATUSPAGE_API_KEY", ""))
 }
 
@@ -13,7 +14,7 @@ terraform {
 }
 
 dependency "platform" {
-  config_path = "${get_original_terragrunt_dir()}/../env-platform"
+  config_path = "${get_original_terragrunt_dir()}/../app-env"
 
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "output"]
   mock_outputs_merge_strategy_with_state  = "shallow"
@@ -29,9 +30,9 @@ inputs = {
   resource_group_name          = dependency.platform.outputs.resource_group_name
   location                     = local.region_vars.locals.location
   environment                  = local.env
-  name                         = local.name
-  container_app_name           = "ca-${local.name}-${local.env}-${local.region_vars.locals.location_short}"
-  container_name               = local.name
+  name                         = local.app_name
+  container_app_name           = "ca-${local.app_name}-${local.env}-${local.region_vars.locals.location_short}"
+  container_name               = local.app_name
   container_image              = coalesce(get_env("MYAPP_IMAGE", ""), "ghcr.io/example/myapp:${local.env}")
   registry_server              = trimspace(get_env("MYAPP_REGISTRY_SERVER", "")) == "" ? null : trimspace(get_env("MYAPP_REGISTRY_SERVER", ""))
   acr_id                       = trimspace(get_env("MYAPP_ACR_ID", "")) == "" ? null : trimspace(get_env("MYAPP_ACR_ID", ""))

@@ -13,7 +13,7 @@ The `live/` directory is organized into the following hierarchy:
 ```text
 live/
 ├── _shared/
-│   ├── env-platform.hcl
+│   ├── app-env.hcl
 │   └── myapp.hcl
 └── [subscription] / [region] / [environment] / [service]
 ```
@@ -21,7 +21,7 @@ live/
 *   **Subscription (`live/non-prod/`, `live/prod/`):** Represents the Azure Subscription boundary. This provides the highest level of isolation for security and billing. Contains a `subscription.hcl` file.
 *   **Region (`australiaeast/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
 *   **Environment (`dev/`, `stg/`, `prod/`):** The logical deployment stage. Contains an `env.hcl` file.
-*   **Service (`myapp/`, `env-platform/`):** The actual Terragrunt configuration (`terragrunt.hcl`) that includes shared stack logic and deploys a specific stack.
+*   **Service (`myapp/`, `app-env/`):** The actual Terragrunt configuration (`terragrunt.hcl`) that includes shared stack logic and deploys a specific stack.
 *   **Shared Config (`live/_shared/`):** Centralized Terragrunt config reused by many leaf stacks to remove copy-paste while preserving environment-specific behavior.
 
 ### Example Layout
@@ -29,7 +29,7 @@ live/
 ```text
 live/
 ├── _shared/
-│   ├── env-platform.hcl        # Shared platform stack logic
+│   ├── app-env.hcl             # Shared app environment stack logic
 │   └── myapp.hcl               # Shared app stack logic
 ├── non-prod/
 │   ├── subscription.hcl         # Defines subscription_name = "non-prod"
@@ -37,13 +37,13 @@ live/
 │       ├── region.hcl           # Defines location = "australiaeast"
 │       ├── dev/
 │       │   ├── env.hcl          # Defines environment = "dev"
-│       │   ├── env-platform/
+│       │   ├── app-env/
 │       │   │   └── terragrunt.hcl
 │       │   └── myapp/
 │       │       └── terragrunt.hcl
 │       └── stg/
 │           ├── env.hcl          # Defines environment = "stg"
-│           ├── env-platform/
+│           ├── app-env/
 │           │   └── terragrunt.hcl
 │           └── myapp/
 │               └── terragrunt.hcl
@@ -53,7 +53,7 @@ live/
     │   ├── region.hcl           # Defines location = "australiaeast"
     │   └── prod/
     │       ├── env.hcl          # Defines environment = "prod"
-    │       ├── env-platform/
+    │       ├── app-env/
     │       │   └── terragrunt.hcl
     │       └── myapp/
     │           └── terragrunt.hcl
@@ -61,7 +61,7 @@ live/
         ├── region.hcl           # Defines location = "southeastasia"
         └── prod/
             ├── env.hcl          # Defines environment = "prod"
-            ├── env-platform/
+            ├── app-env/
             │   └── terragrunt.hcl
             └── myapp/
                 └── terragrunt.hcl
@@ -72,14 +72,14 @@ live/
 1.  **Isolated State Files:** Every leaf `terragrunt.hcl` file generates its own isolated Terraform state file in the Azure Storage backend based on its path (e.g., `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
 2.  **DRY Variable Inheritance:** Shared stack configs use Terragrunt's `read_terragrunt_config()` function to dynamically pull values from the `.hcl` files above the active leaf directory. This means `location` and `environment` never have to be hardcoded in each child stack.
 3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying platform from the applications that run on it.
-    *   **The Platform (`env-platform`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster).
+    *   **The App Environment (`app-env`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster).
     *   **The Application (`myapp`):** Acts as the "Tenant." It represents a single microservice. It uses a Terragrunt `dependency` block to ask the platform for its IDs, and then deploys a specific container image into that shared cluster. 
     
-    *Example:* If you need to add a second microservice (e.g., `user-api`), you simply add a new application folder next to the others. It will automatically deploy into the existing `env-platform`, significantly reducing Azure costs and simplifying architecture:
+    *Example:* If you need to add a second microservice (e.g., `user-api`), you simply add a new application folder next to the others. It will automatically deploy into the existing `app-env`, significantly reducing Azure costs and simplifying architecture:
 
     ```text
     live/non-prod/australiaeast/dev/
-    ├── env-platform/            <-- (Landlord: Provisions cluster once)
+    ├── app-env/                 <-- (Landlord: Provisions cluster once)
     ├── myapp/                   <-- (Tenant 1: myapp deploys into cluster)
     └── user-api/                <-- (Tenant 2: NEW! Deploys into cluster)
     ```
@@ -113,7 +113,7 @@ That is how the same shared config automatically receives:
 - region: `australiaeast`
 - environment: `dev`
 
-without duplicating the whole `myapp` or `env-platform` config in every environment.
+without duplicating the whole `myapp` or `app-env` config in every environment.
 
 ---
 
@@ -156,7 +156,7 @@ locals {
 Copy the existing stack folders from the old region to the new region.
 
 ```bash
-cp -r live/prod/australiaeast/prod/env-platform live/prod/westeurope/prod/
+cp -r live/prod/australiaeast/prod/app-env live/prod/westeurope/prod/
 cp -r live/prod/australiaeast/prod/myapp live/prod/westeurope/prod/
 ```
 
@@ -205,7 +205,7 @@ Only **after** `terragrunt destroy` has successfully completed and verified the 
 
 ## Dependencies and Mock Outputs
 
-Because the Application (`myapp`) depends on the Platform (`env-platform`), it uses a Terragrunt `dependency` block to fetch the necessary resource IDs.
+Because the Application (`myapp`) depends on the App Environment (`app-env`), it uses a Terragrunt `dependency` block to fetch the necessary resource IDs.
 
 Splitting modules into separate "stacks" (Platform vs Application) fundamentally changes how Terraform calculates its dependency graph. In a monolithic module, Terraform knows it will create all resources and can internally mark future IDs as `(known after apply)`. However, when separated, Terraform cannot natively read across different state files during a "Cold Start" (when the Platform hasn't been deployed yet).
 

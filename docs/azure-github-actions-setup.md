@@ -58,13 +58,13 @@ Terraform state is stored in Azure Storage using the `azurerm` backend from the 
 
 Each environment gets a separate state key based on the stack path:
 
-- `live/non-prod/australiaeast/dev/env-platform/terraform.tfstate`
+- `live/non-prod/australiaeast/dev/app-env/terraform.tfstate`
 - `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`
-- `live/non-prod/australiaeast/stg/env-platform/terraform.tfstate`
+- `live/non-prod/australiaeast/stg/app-env/terraform.tfstate`
 - `live/non-prod/australiaeast/stg/myapp/terraform.tfstate`
-- `live/prod/australiaeast/prod/env-platform/terraform.tfstate`
+- `live/prod/australiaeast/prod/app-env/terraform.tfstate`
 - `live/prod/australiaeast/prod/myapp/terraform.tfstate`
-- `live/prod/southeastasia/prod/env-platform/terraform.tfstate`
+- `live/prod/southeastasia/prod/app-env/terraform.tfstate`
 - `live/prod/southeastasia/prod/myapp/terraform.tfstate`
 
 The backend values come from:
@@ -410,5 +410,5 @@ Relevant references:
 
 - GitHub Actions runners are ephemeral, so `terragrunt init` must run on every workflow execution.
 - `init` does not recreate Azure resources. It initializes the backend, providers, and working directory for that run.
-- The workflow runs from the environment root and uses `terragrunt run --all --non-interactive ...` so `env-platform` is applied before `myapp`.
+- The workflow runs from the environment root and uses `terragrunt run --all --non-interactive ...` so `app-env` is applied before `myapp`.
 - If `acr_id` is used, the deployment identity needs enough permission to create the `AcrPull` role assignment.
