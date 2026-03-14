@@ -57,12 +57,41 @@ Terraform state is stored in Azure Storage using the `azurerm` backend from the 
 
 Each environment gets a separate state key based on the stack path:
 
-- `live/dev/myapp/terraform.tfstate`
-- `live/stg/myapp/terraform.tfstate`
-- `live/prod/myapp/terraform.tfstate`
+- `live/non-prod/australiaeast/dev/env-platform/terraform.tfstate`
+- `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`
+- `live/non-prod/australiaeast/stg/env-platform/terraform.tfstate`
+- `live/non-prod/australiaeast/stg/myapp/terraform.tfstate`
+- `live/prod/australiaeast/prod/env-platform/terraform.tfstate`
+- `live/prod/australiaeast/prod/myapp/terraform.tfstate`
+- `live/prod/southeastasia/prod/env-platform/terraform.tfstate`
+- `live/prod/southeastasia/prod/myapp/terraform.tfstate`
 
 The backend values come from:
 
+- `TG_STATE_RESOURCE_GROUP`
+- `TG_STATE_STORAGE_ACCOUNT`
+- `TG_STATE_CONTAINER`
+
+This repo includes [init-azure-state.sh](/home/guille/dev/aca-infra/scripts/init-azure-state.sh) to bootstrap the backend resource group, storage account, and blob container.
+
+Example:
+
+```bash
+export AZURE_SUBSCRIPTION_ID="<subscription-id>"
+export STATE_SA="<globally-unique-storage-account>"
+
+./scripts/init-azure-state.sh
+```
+
+Script defaults:
+
+- `LOCATION=australiaeast`
+- `STATE_RG=rg-aca-terraform-state`
+- `STATE_CONTAINER=tfstate`
+
+The script prints the values to store in GitHub configuration:
+
+- `AZURE_SUBSCRIPTION_ID`
 - `TG_STATE_RESOURCE_GROUP`
 - `TG_STATE_STORAGE_ACCOUNT`
 - `TG_STATE_CONTAINER`
@@ -72,6 +101,45 @@ Microsoft Learn backend reference:
 - https://learn.microsoft.com/en-us/azure/developer/terraform/store-state-in-azure-storage
 
 ## Azure Side Setup
+
+## Quick Start Script
+
+This repo includes [init-azure-oidc.sh](/home/guille/dev/aca-infra/scripts/init-azure-oidc.sh) to bootstrap the Microsoft Entra app, service principal, Azure role assignment, and GitHub OIDC federated credential.
+
+Required environment variables:
+
+- `AZURE_SUBSCRIPTION_ID`
+- `AZURE_TENANT_ID`
+- `GITHUB_OWNER`
+- `GITHUB_REPO`
+
+Common optional environment variables:
+
+- `APP_NAME` default: `aca-infra-gha`
+- `ENV_NAME` default: `dev`
+- `ROLE_NAME` default: `Contributor`
+- `ROLE_SCOPE` default: `/subscriptions/$AZURE_SUBSCRIPTION_ID`
+- `FEDERATED_CRED_NAME` default: `github-$ENV_NAME`
+
+Example:
+
+```bash
+export AZURE_SUBSCRIPTION_ID="<subscription-id>"
+export AZURE_TENANT_ID="<tenant-id>"
+export GITHUB_OWNER="<owner>"
+export GITHUB_REPO="aca-infra"
+export ENV_NAME="dev"
+
+./scripts/init-azure-oidc.sh
+```
+
+The script prints the values to store as GitHub repository secrets:
+
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
+
+Use the manual steps below if you want to create or scope each Azure object yourself instead of using the helper script.
 
 ### 1. Choose Scope
 
@@ -85,23 +153,37 @@ Decide the narrowest Azure scope this deployment identity needs:
 
 The current repo assumes the backend already exists.
 
+If you want the fast path, use [init-azure-state.sh](/home/guille/dev/aca-infra/scripts/init-azure-state.sh). The manual commands below are the equivalent fallback.
+
 Example:
 
 ```bash
+export AZURE_SUBSCRIPTION_ID="<subscription-id>"
+export STATE_SA="<globally-unique-storage-account>"
+export LOCATION="australiaeast"
+export STATE_RG="rg-aca-terraform-state"
+export STATE_CONTAINER="tfstate"
+
+az account set --subscription "${AZURE_SUBSCRIPTION_ID}"
+
 az group create \
-  --name rg-aca-terraform-state \
-  --location australiaeast
+  --subscription "${AZURE_SUBSCRIPTION_ID}" \
+  --name "${STATE_RG}" \
+  --location "${LOCATION}"
 
 az storage account create \
-  --name <globally-unique-storage-account> \
-  --resource-group rg-aca-terraform-state \
-  --location australiaeast \
+  --subscription "${AZURE_SUBSCRIPTION_ID}" \
+  --name "${STATE_SA}" \
+  --resource-group "${STATE_RG}" \
+  --location "${LOCATION}" \
   --sku Standard_LRS \
-  --kind StorageV2
+  --kind StorageV2 \
+  --min-tls-version TLS1_2
 
 az storage container create \
-  --name tfstate \
-  --account-name <globally-unique-storage-account> \
+  --subscription "${AZURE_SUBSCRIPTION_ID}" \
+  --name "${STATE_CONTAINER}" \
+  --account-name "${STATE_SA}" \
   --auth-mode login
 ```
 
