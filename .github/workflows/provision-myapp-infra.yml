@@ -121,26 +121,26 @@ jobs:
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@v2.3.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@v4.0.0
         with:
-          terraform_version: ${{ vars.TERRAFORM_VERSION || '1.6.6' }}
+          terraform_version: ${{ vars.TERRAFORM_VERSION || '1.14.7' }}
 
       - name: Setup Terragrunt
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v4.0.0
         with:
-          version: 2025.12.12
+          version: 2026.3.9
           tool_versions: |
-            terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.82.2' }}
+            terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.99.4' }}
 
       - name: Terragrunt init
         run: terragrunt init
@@ -182,29 +182,29 @@ jobs:
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Show deployment targets
         run: echo "Running ${{ inputs.command }} for ${{ needs.prepare-deployment.outputs.display }}"
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@v2.3.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@v4.0.0
         with:
-          terraform_version: ${{ vars.TERRAFORM_VERSION || '1.6.6' }}
+          terraform_version: ${{ vars.TERRAFORM_VERSION || '1.14.7' }}
 
       - name: Setup Terragrunt
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v4.0.0
         with:
-          version: 2025.12.12
+          version: 2026.3.9
           tool_versions: |
-            terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.82.2' }}
+            terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.99.4' }}
 
       - name: Terragrunt init
         run: terragrunt init
