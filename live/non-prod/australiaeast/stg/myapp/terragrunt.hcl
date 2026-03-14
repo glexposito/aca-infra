@@ -3,10 +3,11 @@ include "root" {
 }
 
 locals {
-  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-  env_vars    = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-  env         = local.env_vars.locals.environment
-  name        = "myapp"
+  region_vars     = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  env_vars        = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  subscription_id = get_env("AZURE_SUBSCRIPTION_ID", "00000000-0000-0000-0000-000000000000")
+  env             = local.env_vars.locals.environment
+  name            = "myapp"
 }
 
 terraform {
@@ -17,7 +18,7 @@ dependency "platform" {
   config_path = "../env-platform"
 
   mock_outputs = {
-    container_app_environment_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mock-rg/providers/Microsoft.App/managedEnvironments/mock-cae"
+    container_app_environment_id = "/subscriptions/${local.subscription_id}/resourceGroups/mock-rg/providers/Microsoft.App/managedEnvironments/mock-cae"
     resource_group_name          = "mock-rg"
   }
 }
