@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# #az provider register --namespace Microsoft.Storage need this...
-# Not needed in real life... storage account should exist
+# #az provider register --namespace Microsoft.Storage
+# az provider register --namespace Microsoft.App
+# Not needed in real life... it should be there
 
 set -euo pipefail
 
