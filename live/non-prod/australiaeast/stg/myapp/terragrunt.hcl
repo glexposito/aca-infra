@@ -8,6 +8,7 @@ locals {
   subscription_id = get_env("AZURE_SUBSCRIPTION_ID", "00000000-0000-0000-0000-000000000000")
   env             = local.env_vars.locals.environment
   name            = "myapp"
+  statuspage_api_key = trimspace(get_env("STATUSPAGE_API_KEY", ""))
 }
 
 terraform {
@@ -40,10 +41,10 @@ inputs = {
   environment_variables = {
     APP_ENV = local.env
   }
-  secret_environment_variables = {
+  secret_environment_variables = local.statuspage_api_key == "" ? {} : {
     STATUSPAGE_API_KEY = {
       secret_name  = "statuspage-api-key"
-      secret_value = get_env("STATUSPAGE_API_KEY", "")
+      secret_value = local.statuspage_api_key
     }
   }
 }
