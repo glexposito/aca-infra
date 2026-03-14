@@ -13,6 +13,7 @@ The `live/` directory is organized into the following hierarchy:
 ```text
 live/
 ├── _shared/
+│   ├── app.hcl
 │   ├── app-env.hcl
 │   └── myapp.hcl
 └── [subscription] / [region] / [environment] / [service]
@@ -29,6 +30,7 @@ live/
 ```text
 live/
 ├── _shared/
+│   ├── app.hcl                 # Shared app identity/config
 │   ├── app-env.hcl             # Shared app environment stack logic
 │   └── myapp.hcl               # Shared app stack logic
 ├── non-prod/
@@ -71,8 +73,8 @@ live/
 
 1.  **Isolated State Files:** Every leaf `terragrunt.hcl` file generates its own isolated Terraform state file in the Azure Storage backend based on its path (e.g., `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
 2.  **DRY Variable Inheritance:** Shared stack configs use Terragrunt's `read_terragrunt_config()` function to dynamically pull values from the `.hcl` files above the active leaf directory. This means `location` and `environment` never have to be hardcoded in each child stack.
-3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying platform from the applications that run on it.
-    *   **The App Environment (`app-env`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster).
+3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying shared environment from the applications that run on it.
+    *   **The App Environment (`app-env`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster). In this repo, those resources currently use the shared stack token `core`.
     *   **The Application (`myapp`):** Acts as the "Tenant." It represents a single microservice. It uses a Terragrunt `dependency` block to ask the platform for its IDs, and then deploys a specific container image into that shared cluster. 
     
     *Example:* If you need to add a second microservice (e.g., `user-api`), you simply add a new application folder next to the others. It will automatically deploy into the existing `app-env`, significantly reducing Azure costs and simplifying architecture:
@@ -114,6 +116,8 @@ That is how the same shared config automatically receives:
 - environment: `dev`
 
 without duplicating the whole `myapp` or `app-env` config in every environment.
+
+`app.hcl` is intentionally separate from those shared stack files. It holds stable app identity such as `app_name`, while `app-env.hcl` and `myapp.hcl` continue to resolve environment-specific context from the active leaf directory.
 
 ---
 

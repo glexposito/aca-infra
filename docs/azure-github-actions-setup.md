@@ -19,14 +19,15 @@ In this repo:
 
 Azure resource names follow this pattern:
 
-- `rg-<service>-<env>-<region>`
-- `cae-<service>-<env>-<region>`
-- `law-<service>-<env>-<region>`
-- `ca-<service>-<env>-<region>`
+- `rg-<shared-stack>-<env>-<region>`
+- `cae-<shared-stack>-<env>-<region>`
+- `law-<shared-stack>-<env>-<region>`
+- `ca-<app>-<env>-<region>`
 
 Current conventions in this repo:
 
-- service token: `myapp`
+- shared stack token: `core`
+- app token: `myapp`
 - region code: `aue`
 
 `live` is a standard Terragrunt convention. It means these stacks are the concrete deployments, not reusable building blocks.
@@ -412,3 +413,4 @@ Relevant references:
 - `init` does not recreate Azure resources. It initializes the backend, providers, and working directory for that run.
 - The workflow runs from the environment root and uses `terragrunt run --all --non-interactive ...` so `app-env` is applied before `myapp`.
 - If `acr_id` is used, the deployment identity needs enough permission to create the `AcrPull` role assignment.
+- This repository is a PoC. For quick resets in a disposable test subscription, it can be reasonable to delete both Azure resources and matching backend state for `dev`, but that is not a safe practice for persistent environments.
