@@ -10,6 +10,16 @@
 
 This solution represents a high-quality, professional-grade implementation of the "Terragrunt Reference Architecture." The adoption of the "Landlord/Tenant" model for Azure Container Apps shows a strong understanding of scalable cloud patterns and operational efficiency.
 
+## 📊 Grading Scale Definition
+
+The following scale is used to evaluate the maturity and quality of the infrastructure-as-code (IaC) implementation:
+
+- **Grade A (Excellent):** Professional-grade implementation. Follows industry "gold standards" (like the Gruntwork "Live" pattern), maintains a clean separation of concerns, and is ready for production scaling.
+- **Grade B (Good):** Solid foundation. Functional and mostly idiomatic, but might have minor architectural inconsistencies or lack some advanced features like robust dependency management.
+- **Grade C (Fair):** Functional but basic. Might have "WET" (Write Everything Twice) code, lacks clear modularity, or misses some standard IaC patterns.
+- **Grade D (Poor):** Needs significant refactoring. May have hardcoded values, poor security practices (like secrets in plain text), or confusing directory structures.
+- **Grade E (Inadequate):** Major architectural or security flaws. Not recommended for deployment without a complete overhaul.
+
 ## 🌟 Identified Strengths
 
 ### 1. Architectural Maturity
