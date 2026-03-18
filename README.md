@@ -68,8 +68,8 @@ Each environment now has a small `terragrunt.stack.hcl` file that composes those
 
 The unit wrappers derive region and environment context from the generated unit location by reading:
 
-- `../../region.hcl`
-- `../env.hcl`
+- `../../../region.hcl`
+- `../../env.hcl`
 
 This keeps stack files small without losing per-environment behavior.
 
