@@ -22,7 +22,7 @@ live/
 
 *   **Subscription (`live/non-prod/`, `live/prod/`):** Represents the Azure Subscription boundary. This provides the highest level of isolation for security and billing. Contains a `subscription.hcl` file.
 *   **Region (`australiaeast/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
-*   **Environment (`dev/`, `prod/`):** The logical deployment stage. Contains an `env.hcl` file and a `terragrunt.stack.hcl` entrypoint.
+*   **Environment (`dev/`, `prod/`):** The logical deployment stage. Contains a `terragrunt.stack.hcl` entrypoint.
 *   **Unit Definitions (`live/units/`):** Reusable Terragrunt unit wrappers that map stack `values` into Terraform module inputs and dependencies.
 
 ### Example Layout
@@ -41,21 +41,19 @@ live/
 │   └── australiaeast/
 │       ├── region.hcl           # Defines location = "australiaeast"
 │       ├── dev/
-│       │   ├── env.hcl          # Defines environment = "dev"
 │       │   └── terragrunt.stack.hcl
 └── prod/
     ├── subscription.hcl         # Defines subscription_name = "prod"
     ├── australiaeast/
     │   ├── region.hcl           # Defines location = "australiaeast"
     │   └── prod/
-    │       ├── env.hcl          # Defines environment = "prod"
     │       └── terragrunt.stack.hcl
 ```
 
 ## How It Works
 
 1.  **Isolated State Files:** Every generated unit still gets its own isolated Terraform state file in the Azure Storage backend based on its final path (for example `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
-2.  **Shared Unit Logic:** Environment-level `terragrunt.stack.hcl` files compose shared Terragrunt unit wrappers from `live/units/`. Those units read `region.hcl` and `env.hcl` from their generated location, so region and environment do not need to be repeated across every stack.
+2.  **Shared Unit Logic:** Environment-level `terragrunt.stack.hcl` files compose shared Terragrunt unit wrappers from `live/units/`. Those units read `region.hcl` from their generated location, while the environment name is passed explicitly from the stack file.
 3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying shared environment from the applications that run on it.
     *   **The App Environment (`app-env`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster). In this repo, those resources currently use the shared stack token `core`.
     *   **The Application (`myapp`):** Acts as the "Tenant." It represents a single microservice. It uses a Terragrunt `dependency` block to ask the platform for its IDs, and then deploys a specific container image into that shared cluster. 
@@ -94,27 +92,17 @@ locals {
 }
 ```
 
-**Step 3: Create the `env.hcl` file.**
-Create the environment variables file.
-
-```bash
-# live/prod/westeurope/prod/env.hcl
-locals {
-  environment = "prod"
-}
-```
-
-**Step 4: Copy the environment stack file.**
+**Step 3: Copy the environment stack file.**
 Copy the existing stack file from the old region to the new region.
 
 ```bash
 cp live/prod/australiaeast/prod/terragrunt.stack.hcl live/prod/westeurope/prod/
 ```
 
-**Step 5: Ensure the region short code exists.**
+**Step 4: Ensure the region short code exists.**
 The naming logic depends on `location_short` from `region.hcl`, so add the right short code for the new region.
 
-**Step 6: Deploy.**
+**Step 5: Deploy.**
 Navigate to the new environment root and apply. Terragrunt will automatically handle both stacks and create isolated state files.
 
 ```bash

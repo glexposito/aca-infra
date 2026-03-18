@@ -49,7 +49,7 @@ Terragrunt automatically configures the remote state for each module based on it
 ### Locals and Functions
 Terragrunt uses HCL functions to dynamically determine values:
 - `find_in_parent_folders()`: Automatically finds the `root.hcl` file.
-- `read_terragrunt_config()`: Imports variables from other `.hcl` files (like `region.hcl` or `env.hcl`).
+- `read_terragrunt_config()`: Imports variables from other `.hcl` files such as `region.hcl`.
 - `get_env()`: Fetches environment variables (like `AZURE_SUBSCRIPTION_ID`).
 
 ---
@@ -62,11 +62,10 @@ The architecture follows a "Folder-based Hierarchy."
 The folder structure **is** the configuration. Instead of large variable files, we use small `.hcl` files at each level:
 1.  **Subscription Layer** (`live/non-prod/subscription.hcl`): Defines the Azure billing boundary.
 2.  **Region Layer** (`live/non-prod/australiaeast/region.hcl`): Defines the Azure `location`.
-3.  **Environment Layer** (`live/non-prod/australiaeast/dev/env.hcl`): Defines the `environment` name (dev, stg, prod).
-4.  **Stack Layer** (`live/non-prod/australiaeast/dev/terragrunt.stack.hcl`): The environment entrypoint that composes deployable units.
-5.  **Unit Layer** (`live/units/myapp/terragrunt.hcl`): The reusable Terragrunt wrapper that maps stack `values` into Terraform inputs and dependencies.
+3.  **Environment Layer** (`live/non-prod/australiaeast/dev/terragrunt.stack.hcl`): The environment entrypoint that composes deployable units and sets environment-specific overrides such as `environment = "dev"`.
+4.  **Unit Layer** (`live/units/myapp/terragrunt.hcl`): The reusable Terragrunt wrapper that maps stack `values` into Terraform inputs and dependencies.
 
-Terragrunt uses the environment stack to generate deployable units, and those units read `region.hcl` and `env.hcl` from their generated location to collect the correct context.
+Terragrunt uses the environment stack to generate deployable units. Those units read `region.hcl` from their generated location and receive the environment name from stack values.
 We separate the **Platform** from the **Application**:
 - **Landlord (`app-env`)**: Responsible for the Resource Group and the Container App Environment. It "owns" the land.
 - **Tenant (`myapp`)**: Responsible for the container image and settings. It "rents" space in the Landlord's environment.

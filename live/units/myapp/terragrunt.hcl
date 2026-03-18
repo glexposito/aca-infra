@@ -4,9 +4,8 @@ include "root" {
 
 locals {
   region_vars     = read_terragrunt_config("${get_terragrunt_dir()}/../../../region.hcl")
-  env_vars        = read_terragrunt_config("${get_terragrunt_dir()}/../../env.hcl")
   app_name        = values.name
-  environment     = local.env_vars.locals.environment
+  environment     = values.environment
   location        = local.region_vars.locals.location
   location_short  = local.region_vars.locals.location_short
 }

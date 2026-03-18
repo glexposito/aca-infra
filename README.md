@@ -27,14 +27,12 @@ live/
 │   └── australiaeast/
 │       ├── region.hcl
 │       └── dev/
-│           ├── env.hcl
 │           └── terragrunt.stack.hcl
 └── prod/
     ├── subscription.hcl
     └── australiaeast/
         ├── region.hcl
         └── prod/
-            ├── env.hcl
             └── terragrunt.stack.hcl
 ```
 
@@ -69,9 +67,8 @@ Each environment now has a small `terragrunt.stack.hcl` file that composes those
 The unit wrappers derive region and environment context from the generated unit location by reading:
 
 - `../../../region.hcl`
-- `../../env.hcl`
 
-This keeps stack files small without losing per-environment behavior.
+The environment name itself is passed explicitly from each `terragrunt.stack.hcl` file, which keeps the layout small and avoids an extra `env.hcl` file per environment.
 
 ## Required Environment Variables
 
