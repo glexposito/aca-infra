@@ -13,9 +13,7 @@ In this repo:
 
 - `modules/aca-app`: reusable Azure Container Apps module
 - `live/non-prod/australiaeast/dev`: dev deployment root
-- `live/non-prod/australiaeast/stg`: staging deployment root
 - `live/prod/australiaeast/prod`: production deployment root for Australia East
-- `live/prod/southeastasia/prod`: production deployment root for Southeast Asia
 
 Azure resource names follow this pattern:
 
@@ -61,12 +59,8 @@ Each environment gets a separate state key based on the stack path:
 
 - `live/non-prod/australiaeast/dev/app-env/terraform.tfstate`
 - `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`
-- `live/non-prod/australiaeast/stg/app-env/terraform.tfstate`
-- `live/non-prod/australiaeast/stg/myapp/terraform.tfstate`
 - `live/prod/australiaeast/prod/app-env/terraform.tfstate`
 - `live/prod/australiaeast/prod/myapp/terraform.tfstate`
-- `live/prod/southeastasia/prod/app-env/terraform.tfstate`
-- `live/prod/southeastasia/prod/myapp/terraform.tfstate`
 
 The backend values come from:
 
@@ -275,9 +269,7 @@ repo:<owner>/<repo>:environment:<environment-name>
 Examples:
 
 - `repo:glexposito/aca-infra:environment:dev`
-- `repo:glexposito/aca-infra:environment:stg`
 - `repo:glexposito/aca-infra:environment:prod-aue`
-- `repo:glexposito/aca-infra:environment:prod-sea`
 
 Create one federated credential per environment.
 
@@ -303,7 +295,7 @@ az ad app federated-credential create \
   --parameters github-dev.json
 ```
 
-Repeat for `stg`, `prod-aue`, and `prod-sea`.
+Repeat for `prod-aue`.
 
 Microsoft Learn reference:
 
@@ -314,14 +306,11 @@ Microsoft Learn reference:
 Create these GitHub environments:
 
 - `dev`
-- `stg`
 - `prod-aue`
-- `prod-sea`
 
 Recommended:
 
-- require approvals for `prod-aue` and `prod-sea`
-- optionally require approvals for `stg`
+- require approvals for `prod-aue`
 - keep `dev` open for fast iteration
 
 ### 7. Add GitHub Secrets And Variables
@@ -367,6 +356,7 @@ export MYAPP_IMAGE="ghcr.io/example/myapp:dev"
 export STATUSPAGE_API_KEY="replace-me"
 
 cd live/non-prod/australiaeast/dev
+terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
 ```
@@ -378,10 +368,7 @@ If local `plan` works, test GitHub Actions against `dev` first.
 Manual dispatch supports:
 
 - `targets=dev`
-- `targets=stg`
 - `targets=prod-aue`
-- `targets=prod-sea`
-- `targets=dev,stg`
 
 The workflow intentionally rejects `apply` when a `prod-*` target is mixed with other environments.
 
@@ -390,9 +377,7 @@ The workflow intentionally rejects `apply` when a `prod-*` target is mixed with 
 This repo currently keeps:
 
 - `dev`: 30 days
-- `stg`: 30 days
 - `prod-aue`: 30 days
-- `prod-sea`: 30 days
 
 These are Log Analytics retention settings, not log volume caps.
 

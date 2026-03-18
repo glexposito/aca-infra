@@ -34,7 +34,7 @@ Terragrunt is a thin wrapper that provides extra tools for keeping your configur
 ### DRY (Don't Repeat Yourself)
 In standard Terraform, you often find yourself copy-pasting provider and backend configurations. Terragrunt eliminates this.
 - **`root.hcl`**: Contains the "source of truth" for the Azure backend and provider. All other folders "include" this file.
-- **`_shared/`**: Contains common logic for a service (e.g., `myapp.hcl`). Instead of defining `myapp` in every environment folder, we define it once in `_shared` and reference it.
+- **`live/units/`**: Contains reusable Terragrunt unit wrappers. Instead of repeating module wiring, dependency blocks, and naming logic in every environment, each `terragrunt.stack.hcl` composes these shared units.
 
 ### Dependencies
 Infrastructure often has a natural order. You can't deploy an app until the environment (the cluster) exists.
@@ -44,7 +44,7 @@ Infrastructure often has a natural order. You can't deploy an app until the envi
 
 ### Remote State Management
 Terragrunt automatically configures the remote state for each module based on its file path.
-- If you are in `live/non-prod/australiaeast/dev/myapp`, Terragrunt will automatically set the state key to `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`.
+- If a generated unit ends up at `live/non-prod/australiaeast/dev/myapp`, Terragrunt will automatically set the state key to `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`.
 
 ### Locals and Functions
 Terragrunt uses HCL functions to dynamically determine values:
@@ -63,18 +63,19 @@ The folder structure **is** the configuration. Instead of large variable files, 
 1.  **Subscription Layer** (`live/non-prod/subscription.hcl`): Defines the Azure billing boundary.
 2.  **Region Layer** (`live/non-prod/australiaeast/region.hcl`): Defines the Azure `location`.
 3.  **Environment Layer** (`live/non-prod/australiaeast/dev/env.hcl`): Defines the `environment` name (dev, stg, prod).
-4.  **Service Layer** (`live/non-prod/australiaeast/dev/myapp/terragrunt.hcl`): The final "leaf" that triggers the deployment.
+4.  **Stack Layer** (`live/non-prod/australiaeast/dev/terragrunt.stack.hcl`): The environment entrypoint that composes deployable units.
+5.  **Unit Layer** (`live/units/myapp/terragrunt.hcl`): The reusable Terragrunt wrapper that maps stack `values` into Terraform inputs and dependencies.
 
-Terragrunt crawls **up** from the leaf directory to collect all these variables and pass them into the Terraform module.
+Terragrunt uses the environment stack to generate deployable units, and those units read `region.hcl` and `env.hcl` from their generated location to collect the correct context.
 We separate the **Platform** from the **Application**:
 - **Landlord (`app-env`)**: Responsible for the Resource Group and the Container App Environment. It "owns" the land.
 - **Tenant (`myapp`)**: Responsible for the container image and settings. It "rents" space in the Landlord's environment.
 
 ### Deployment Flow
-When you run `terragrunt apply` in a leaf directory:
-1.  Terragrunt reads the `terragrunt.hcl`.
-2.  It includes the `root.hcl` to setup the Azure Backend and Provider.
-3.  It includes the `_shared/` logic to find the Terraform source code (`modules/`).
-4.  It resolves `dependencies` (fetching IDs from the Landlord).
-5.  It downloads the Terraform module.
+When you run `terragrunt stack generate` and `terragrunt run --all apply` from an environment root:
+1.  Terragrunt reads the `terragrunt.stack.hcl`.
+2.  It generates deployable unit directories such as `app-env/` and `myapp/`.
+3.  Each generated unit includes `root.hcl` to set up the Azure backend and provider.
+4.  Each generated unit resolves `dependencies` (for example, `myapp` fetching IDs from `app-env`).
+5.  Terragrunt invokes the Terraform module defined by the unit wrapper under `modules/`.
 6.  It runs `terraform apply` with the calculated `inputs`.

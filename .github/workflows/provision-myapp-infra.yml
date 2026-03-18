@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: "Comma-separated environments: dev, stg, prod-aue, prod-sea"
+        description: "Comma-separated environments: dev, prod-aue"
         required: true
         type: string
         default: "dev"
@@ -48,7 +48,7 @@ jobs:
 
           raw = os.environ["INPUT_TARGETS"]
           command = os.environ["INPUT_COMMAND"]
-          allowed = ["dev", "stg", "prod-aue", "prod-sea"]
+          allowed = ["dev", "prod-aue"]
 
           parts = [p.strip() for p in raw.split(",") if p.strip()]
           if not parts:
@@ -65,10 +65,6 @@ jobs:
             if env in parts and not any(o['environment'] == env for o in ordered):
               if env == 'prod-aue':
                 ordered.append({'environment': 'prod-aue', 'working_dir': 'live/prod/australiaeast/prod'})
-              elif env == 'prod-sea':
-                ordered.append({'environment': 'prod-sea', 'working_dir': 'live/prod/southeastasia/prod'})
-              elif env == 'stg':
-                ordered.append({'environment': 'stg', 'working_dir': 'live/non-prod/australiaeast/stg'})
               else:
                 ordered.append({'environment': 'dev', 'working_dir': 'live/non-prod/australiaeast/dev'})
 
@@ -91,12 +87,8 @@ jobs:
         include:
           - environment: dev
             working_dir: live/non-prod/australiaeast/dev
-          - environment: stg
-            working_dir: live/non-prod/australiaeast/stg
           - environment: prod-aue
             working_dir: live/prod/australiaeast/prod
-          - environment: prod-sea
-            working_dir: live/prod/southeastasia/prod
     concurrency:
       group: myapp-plan-${{ matrix.environment }}
       cancel-in-progress: true
@@ -140,6 +132,9 @@ jobs:
           version: 2026.3.9
           tool_versions: |
             terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.99.4' }}
+
+      - name: Terragrunt stack generate
+        run: terragrunt stack generate
 
       - name: Terragrunt init
         run: terragrunt run --all --non-interactive init
@@ -203,6 +198,9 @@ jobs:
           version: 2026.3.9
           tool_versions: |
             terragrunt ${{ vars.TERRAGRUNT_VERSION || '0.99.4' }}
+
+      - name: Terragrunt stack generate
+        run: terragrunt stack generate
 
       - name: Terragrunt init
         run: terragrunt run --all --non-interactive init

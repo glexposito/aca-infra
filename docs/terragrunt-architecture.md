@@ -13,111 +13,59 @@ The `live/` directory is organized into the following hierarchy:
 ```text
 live/
 ├── _shared/
-│   ├── app.hcl
-│   ├── app-env.hcl
-│   └── myapp.hcl
-└── [subscription] / [region] / [environment] / [service]
+│   └── app.hcl
+├── units/
+│   ├── app-env/terragrunt.hcl
+│   └── myapp/terragrunt.hcl
+└── [subscription] / [region] / [environment]
 ```
 
 *   **Subscription (`live/non-prod/`, `live/prod/`):** Represents the Azure Subscription boundary. This provides the highest level of isolation for security and billing. Contains a `subscription.hcl` file.
 *   **Region (`australiaeast/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
-*   **Environment (`dev/`, `stg/`, `prod/`):** The logical deployment stage. Contains an `env.hcl` file.
-*   **Service (`myapp/`, `app-env/`):** The actual Terragrunt configuration (`terragrunt.hcl`) that includes shared stack logic and deploys a specific stack.
-*   **Shared Config (`live/_shared/`):** Centralized Terragrunt config reused by many leaf stacks to remove copy-paste while preserving environment-specific behavior.
+*   **Environment (`dev/`, `prod/`):** The logical deployment stage. Contains an `env.hcl` file and a `terragrunt.stack.hcl` entrypoint.
+*   **Unit Definitions (`live/units/`):** Reusable Terragrunt unit wrappers that map stack `values` into Terraform module inputs and dependencies.
 
 ### Example Layout
 
 ```text
 live/
 ├── _shared/
-│   ├── app.hcl                 # Shared app identity/config
-│   ├── app-env.hcl             # Shared app environment stack logic
-│   └── myapp.hcl               # Shared app stack logic
+│   └── app.hcl                 # Shared app identity/config
+├── units/
+│   ├── app-env/
+│   │   └── terragrunt.hcl      # Shared app environment unit wrapper
+│   └── myapp/
+│       └── terragrunt.hcl      # Shared app unit wrapper
 ├── non-prod/
 │   ├── subscription.hcl         # Defines subscription_name = "non-prod"
 │   └── australiaeast/
 │       ├── region.hcl           # Defines location = "australiaeast"
 │       ├── dev/
 │       │   ├── env.hcl          # Defines environment = "dev"
-│       │   ├── app-env/
-│       │   │   └── terragrunt.hcl
-│       │   └── myapp/
-│       │       └── terragrunt.hcl
-│       └── stg/
-│           ├── env.hcl          # Defines environment = "stg"
-│           ├── app-env/
-│           │   └── terragrunt.hcl
-│           └── myapp/
-│               └── terragrunt.hcl
+│       │   └── terragrunt.stack.hcl
 └── prod/
     ├── subscription.hcl         # Defines subscription_name = "prod"
     ├── australiaeast/
     │   ├── region.hcl           # Defines location = "australiaeast"
     │   └── prod/
     │       ├── env.hcl          # Defines environment = "prod"
-    │       ├── app-env/
-    │       │   └── terragrunt.hcl
-    │       └── myapp/
-    │           └── terragrunt.hcl
-    └── southeastasia/
-        ├── region.hcl           # Defines location = "southeastasia"
-        └── prod/
-            ├── env.hcl          # Defines environment = "prod"
-            ├── app-env/
-            │   └── terragrunt.hcl
-            └── myapp/
-                └── terragrunt.hcl
+    │       └── terragrunt.stack.hcl
 ```
 
 ## How It Works
 
-1.  **Isolated State Files:** Every leaf `terragrunt.hcl` file generates its own isolated Terraform state file in the Azure Storage backend based on its path (e.g., `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
-2.  **DRY Variable Inheritance:** Shared stack configs use Terragrunt's `read_terragrunt_config()` function to dynamically pull values from the `.hcl` files above the active leaf directory. This means `location` and `environment` never have to be hardcoded in each child stack.
+1.  **Isolated State Files:** Every generated unit still gets its own isolated Terraform state file in the Azure Storage backend based on its final path (for example `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
+2.  **Shared Unit Logic:** Environment-level `terragrunt.stack.hcl` files compose shared Terragrunt unit wrappers from `live/units/`. Those units read `region.hcl` and `env.hcl` from their generated location, so region and environment do not need to be repeated across every stack.
 3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying shared environment from the applications that run on it.
     *   **The App Environment (`app-env`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster). In this repo, those resources currently use the shared stack token `core`.
     *   **The Application (`myapp`):** Acts as the "Tenant." It represents a single microservice. It uses a Terragrunt `dependency` block to ask the platform for its IDs, and then deploys a specific container image into that shared cluster. 
     
-    *Example:* If you need to add a second microservice (e.g., `user-api`), you simply add a new application folder next to the others. It will automatically deploy into the existing `app-env`, significantly reducing Azure costs and simplifying architecture:
+    *Example:* If you need to add a second microservice (e.g., `user-api`), you add another unit to the environment stack next to the others. It will automatically deploy into the existing `app-env`, significantly reducing Azure costs and simplifying architecture:
 
     ```text
     live/non-prod/australiaeast/dev/
-    ├── app-env/                 <-- (Landlord: Provisions cluster once)
-    ├── myapp/                   <-- (Tenant 1: myapp deploys into cluster)
-    └── user-api/                <-- (Tenant 2: NEW! Deploys into cluster)
+    └── terragrunt.stack.hcl     <-- Defines app-env, myapp, user-api units
     ```
-
-### Why `live/_shared` Works
-
-The shared files are not generic templates with hardcoded paths. They resolve values relative to the real leaf stack Terragrunt is running.
-
-For example, [myapp.hcl](/home/guille/dev/aca-infra/live/_shared/myapp.hcl) uses:
-
-```hcl
-region_vars = read_terragrunt_config("${get_original_terragrunt_dir()}/../../region.hcl")
-env_vars    = read_terragrunt_config("${get_original_terragrunt_dir()}/../env.hcl")
-```
-
-`get_original_terragrunt_dir()` points to the leaf directory that included the shared file, not to `live/_shared`.
-
-So if Terragrunt runs for:
-
-```text
-live/non-prod/australiaeast/dev/myapp
-```
-
-then the shared file resolves:
-
-- `../../region.hcl` -> `live/non-prod/australiaeast/region.hcl`
-- `../env.hcl` -> `live/non-prod/australiaeast/dev/env.hcl`
-
-That is how the same shared config automatically receives:
-
-- region: `australiaeast`
-- environment: `dev`
-
-without duplicating the whole `myapp` or `app-env` config in every environment.
-
-`app.hcl` is intentionally separate from those shared stack files. It holds stable app identity such as `app_name`, while `app-env.hcl` and `myapp.hcl` continue to resolve environment-specific context from the active leaf directory.
 
 ---
 
@@ -156,12 +104,11 @@ locals {
 }
 ```
 
-**Step 4: Copy the service configuration.**
-Copy the existing stack folders from the old region to the new region.
+**Step 4: Copy the environment stack file.**
+Copy the existing stack file from the old region to the new region.
 
 ```bash
-cp -r live/prod/australiaeast/prod/app-env live/prod/westeurope/prod/
-cp -r live/prod/australiaeast/prod/myapp live/prod/westeurope/prod/
+cp live/prod/australiaeast/prod/terragrunt.stack.hcl live/prod/westeurope/prod/
 ```
 
 **Step 5: Ensure the region short code exists.**
@@ -172,6 +119,7 @@ Navigate to the new environment root and apply. Terragrunt will automatically ha
 
 ```bash
 cd live/prod/westeurope/prod
+terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 ```
@@ -182,7 +130,7 @@ Because of the folder isolation, this deployment is completely independent of th
 
 ## How to Decommission an Environment (or Region)
 
-If you no longer need an environment (e.g., you are shutting down the Singapore deployment), **do not simply delete the folder from Git.** Doing so will create "orphaned" infrastructure in Azure that will continue to accrue costs because Terraform will lose the ability to manage or delete it.
+If you no longer need an environment or region, **do not simply delete the folder from Git.** Doing so will create "orphaned" infrastructure in Azure that will continue to accrue costs because Terraform will lose the ability to manage or delete it.
 
 To safely decommission an environment, follow this two-step process:
 
@@ -190,7 +138,7 @@ To safely decommission an environment, follow this two-step process:
 Before removing any code, navigate into the specific environment root and instruct Terragrunt to destroy the physical resources.
 
 ```bash
-cd live/prod/southeastasia/prod
+cd live/prod/australiaeast/prod
 terragrunt run --all --non-interactive destroy -- -auto-approve -no-color
 ```
 *Terragrunt will read the state file, determine exactly what resources exist in Azure, and safely delete them.*
@@ -200,7 +148,7 @@ Only **after** `terragrunt destroy` has successfully completed and verified the 
 
 1.  Delete the directory from your repository:
     ```bash
-    rm -rf live/prod/southeastasia
+    rm -rf live/prod/australiaeast
     ```
 2.  Update your CI/CD pipelines (e.g., `.github/workflows/*.yml`) to remove any references or matrix targets pointing to the deleted environment.
 3.  Commit and push the changes.
@@ -215,4 +163,4 @@ Splitting modules into separate "stacks" (Platform vs Application) fundamentally
 
 If you attempt to run `terragrunt plan` on the Application during a cold start, Terraform will crash because it expects a cluster ID but receives null from the unapplied Platform state.
 
-To solve this, the shared `myapp` config uses Terragrunt `mock_outputs` for `init`, `validate`, `plan`, and `output`, but not for `apply`. It also uses `mock_outputs_merge_strategy_with_state = "shallow"` so partial state from a failed platform deployment can still be combined with mocks during non-apply commands.
+To solve this, the shared `myapp` unit wrapper under `live/units/myapp/terragrunt.hcl` uses Terragrunt `mock_outputs` for `init`, `validate`, `plan`, and `output`, but not for `apply`. It also uses `mock_outputs_merge_strategy_with_state = "shallow"` so partial state from a failed platform deployment can still be combined with mocks during non-apply commands.

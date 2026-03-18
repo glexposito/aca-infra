@@ -7,7 +7,7 @@ Terragrunt/Terraform scaffold for deploying a containerized personal app to Azur
 > It is intended for experimentation and learning in a disposable Azure account, not as a hardened production baseline.
 > Expect breaking refactors, manual resets, and destructive rebuilds while the structure is still being explored.
 
-This repository implements the [Gruntwork Terragrunt Reference Architecture](docs/terragrunt-architecture.md), utilizing a strict hierarchical layout (`subscription/region/environment/service`) to maximize configuration reuse (DRY) and strictly limit the blast radius of changes.
+This repository implements a Terragrunt layout inspired by the [Gruntwork Terragrunt Reference Architecture](docs/terragrunt-architecture.md), utilizing a strict hierarchical layout (`subscription/region/environment`) with explicit stack files and shared unit wrappers to maximize configuration reuse and limit blast radius.
 
 ## Architecture & Layout
 
@@ -17,19 +17,25 @@ This repository implements the [Gruntwork Terragrunt Reference Architecture](doc
 
 ```text
 live/
-├── _shared/
-│   ├── app-env.hcl
-│   ├── app.hcl
-│   └── myapp.hcl
+├── units/
+│   ├── app-env/
+│   │   └── terragrunt.hcl
+│   └── myapp/
+│       └── terragrunt.hcl
 ├── non-prod/
+│   ├── subscription.hcl
 │   └── australiaeast/
-│       ├── dev/
-│       └── stg/
+│       ├── region.hcl
+│       └── dev/
+│           ├── env.hcl
+│           └── terragrunt.stack.hcl
 └── prod/
-    ├── australiaeast/
-    │   └── prod/
-    └── southeastasia/
+    ├── subscription.hcl
+    └── australiaeast/
+        ├── region.hcl
         └── prod/
+            ├── env.hcl
+            └── terragrunt.stack.hcl
 ```
 
 ### Documentation
@@ -49,27 +55,23 @@ Azure naming conventions are generated dynamically from the shared stack token, 
 - Shared Log Analytics workspace: `law-<shared-stack>-<env>-<region>`
 - Application Container App: `ca-<app>-<env>-<region>`
 
-*Current app token: `myapp`. Current shared environment stack token: `core`. Current region shortcodes: `aue` for Australia East and `sea` for Southeast Asia.*
+*Current app token: `myapp`. Current shared environment stack token: `core`. Current region shortcode in use: `aue` for Australia East.*
 
-## Shared Terragrunt Config
+## Terragrunt Composition
 
-Common stack logic lives in:
+Reusable Terragrunt unit logic lives in:
 
-- `live/_shared/app-env.hcl`
-- `live/_shared/app.hcl`
-- `live/_shared/myapp.hcl`
+- `live/units/app-env/terragrunt.hcl`
+- `live/units/myapp/terragrunt.hcl`
 
-Each environment-specific leaf file stays small and includes the shared config. The shared files still resolve the correct region and environment by using `get_original_terragrunt_dir()`, which points to the actual leaf stack directory Terragrunt was invoked for. From that real directory:
+Each environment now has a small `terragrunt.stack.hcl` file that composes those shared units and passes only per-environment overrides such as the stack name, retention period, image registry settings, or replica counts.
 
-- `../../region.hcl` resolves the region config
-- `../env.hcl` resolves the environment config
+The unit wrappers derive region and environment context from the generated unit location by reading:
 
-So when Terragrunt runs from `live/non-prod/australiaeast/dev/myapp`, the shared config reads:
+- `../../region.hcl`
+- `../env.hcl`
 
-- `live/non-prod/australiaeast/region.hcl`
-- `live/non-prod/australiaeast/dev/env.hcl`
-
-This keeps the repo DRY without losing per-environment behavior.
+This keeps stack files small without losing per-environment behavior.
 
 ## Required Environment Variables
 
@@ -90,10 +92,11 @@ To run Terragrunt locally, you need the following Azure authentication and state
 
 ## Example Usage
 
-For full environment deployment, run from the environment root so Terragrunt can apply `app-env` before `myapp`:
+For full environment deployment, run from the environment root so Terragrunt can generate and apply `app-env` before `myapp`:
 
 ```bash
 cd live/non-prod/australiaeast/dev
+terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
 terragrunt run --all --non-interactive apply -- -auto-approve -no-color
@@ -104,7 +107,7 @@ terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 The workflow is located in [`.github/workflows/provision-myapp-infra.yml`](.github/workflows/provision-myapp-infra.yml).
 
 - **Pull Requests**: Automatically runs `terragrunt run --all plan` from each environment root.
-- **Manual Dispatch**: Allows applying changes to specific environments. Supports comma-separated targets such as `dev,stg`. Applying to multiple `prod-*` targets simultaneously is intentionally restricted to prevent cascading failures.
+- **Manual Dispatch**: Allows applying changes to specific environments such as `dev` or `prod-aue`.
 
 ### Required GitHub Secrets
 
@@ -130,8 +133,8 @@ The workflow is located in [`.github/workflows/provision-myapp-infra.yml`](.gith
 
 ### Recommended GitHub Setup
 
-1. Create GitHub Environments named `dev`, `stg`, `prod-aue`, and `prod-sea`.
-2. Add approval rules for the `prod-*` environments.
+1. Create GitHub Environments named `dev` and `prod-aue`.
+2. Add approval rules for the production environment.
 3. Configure Azure federated credentials to trust the repo and those specific environments.
 4. Set the workload-specific variables and secrets (`STATUSPAGE_API_KEY`, image tags) on the environments that need them. The PR `plan` job only sees repository-level `vars` and `secrets`, so keep values there unless the workflow is changed to attach GitHub environments during PR plans.
 

@@ -1,5 +1,8 @@
 # Code Review Report: ACA-Infra Solution
 
+> [!NOTE]
+> This report reflects an earlier iteration of the repo before the move to environment-level `terragrunt.stack.hcl` files and shared `live/units/` wrappers. Treat architecture-specific comments here as historical context, not current design documentation.
+
 **Review Date:** Sunday, 15 March 2026
 **Reviewer:** Gemini (Gemini CLI)
 **Status:** Completed (Grade: A)
@@ -23,7 +26,7 @@ The following scale is used to evaluate the maturity and quality of the infrastr
 ## 🌟 Identified Strengths
 
 ### 1. Architectural Maturity
-The use of the Gruntwork "Live" pattern is excellent. The dynamic resolution of `region.hcl` and `env.hcl` using `get_original_terragrunt_dir()` is the industry "gold standard" for keeping Terragrunt DRY (Don't Repeat Yourself).
+The use of the Gruntwork "Live" pattern is excellent. The separation between environment stacks, shared Terragrunt unit wrappers, and Terraform modules provides a clean and scalable foundation.
 
 ### 2. Clean Separation of Concerns
 The modules are well-scoped:
@@ -42,8 +45,8 @@ The use of `dynamic` blocks for `env` and `secret` configurations in `aca-app` d
 ## 🔍 Recommendations for Improvement
 
 ### 1. Centralize Naming Logic
-**Observation:** Naming conventions (e.g., `ca-${local.app_name}-${local.env}-${local.region_vars.locals.location_short}`) are currently duplicated across multiple shared `.hcl` files.
-**Recommendation:** Create a `live/_shared/naming.hcl` to export these strings. This ensures that any future naming standard changes only need to be applied in a single location.
+**Observation:** Naming conventions are implemented in Terragrunt unit wrappers and may still expand as more services are added.
+**Recommendation:** If naming logic grows further, consider a dedicated shared naming helper or a more explicit convention file so future naming standard changes only need to be applied in one place.
 
 ### 2. Transition to Azure Key Vault
 **Observation:** Secrets are currently sourced via `get_env()`.
