@@ -8,7 +8,7 @@ unit "app-env" {
 
   values = {
     environment                     = "dev"
-    name                            = "core"
+    name                            = "platform-noncritical"
     log_analytics_retention_in_days = 30
   }
 }
@@ -22,8 +22,6 @@ unit "myapp" {
     platform_path   = "../app-env"
     name            = "myapp"
     container_image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
-    registry_server = null
-    acr_id          = null
     min_replicas    = 1
     max_replicas    = 1
   }

@@ -24,7 +24,7 @@ Azure resource names follow this pattern:
 
 Current conventions in this repo:
 
-- shared stack token: `core`
+- shared stack token: `platform-noncritical`
 - app token: `myapp`
 - region code: `weu`
 

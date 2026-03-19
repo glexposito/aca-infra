@@ -53,7 +53,7 @@ Azure naming conventions are generated dynamically from the shared stack token, 
 - Shared Log Analytics workspace: `law-<shared-stack>-<env>-<region>`
 - Application Container App: `ca-<app>-<env>-<region>`
 
-*Current app token: `myapp`. Current shared environment stack token: `core`. Current region shortcode in use: `weu` for West Europe.*
+*Current app token: `myapp`. Current shared environment stack token: `platform-noncritical`. Current region shortcode in use: `weu` for West Europe.*
 
 ## Terragrunt Composition
 
