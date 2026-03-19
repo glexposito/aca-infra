@@ -1,12 +1,6 @@
 name: Provision My App Infra
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/provision-myapp-infra.yml"
-      - "terragrunt.hcl"
-      - "modules/**"
-      - "live/**"
   workflow_dispatch:
     inputs:
       targets:
@@ -80,64 +74,6 @@ jobs:
           print(f"matrix={json.dumps(ordered)}")
           print(f"display={','.join(display_names)}")
           PY
-
-  plan:
-    if: github.event_name == 'pull_request'
-    name: Plan My App (${{ matrix.environment }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - environment: dev
-            working_dir: live/non-prod/westeurope/dev
-          - environment: prod-weu
-            working_dir: live/prod/westeurope/prod
-    environment: ${{ matrix.environment }}
-    concurrency:
-      group: myapp-plan-${{ matrix.environment }}
-      cancel-in-progress: true
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ matrix.working_dir }}
-    env:
-      ARM_USE_OIDC: true
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-
-      - name: Azure login
-        uses: azure/login@v2.3.0
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4.0.0
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-
-      - name: Setup Terragrunt
-        uses: jdx/mise-action@v4.0.0
-        with:
-          version: 2026.3.9
-          tool_versions: |
-            terragrunt ${{ env.TERRAGRUNT_VERSION }}
-
-      - name: Terragrunt stack generate
-        run: terragrunt stack generate
-
-      - name: Terragrunt init
-        run: terragrunt run --all --non-interactive init
-
-      - name: Terragrunt plan
-        run: terragrunt run --all --non-interactive plan -- -no-color
 
   deploy:
     if: github.event_name == 'workflow_dispatch'
