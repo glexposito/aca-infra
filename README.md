@@ -23,13 +23,13 @@ live/
 │   └── myapp/
 │       └── terragrunt.hcl
 ├── non-prod/
-│   ├── subscription.hcl
+│   ├── backend.hcl
 │   └── australiaeast/
 │       ├── region.hcl
 │       └── dev/
 │           └── terragrunt.stack.hcl
 └── prod/
-    ├── subscription.hcl
+    ├── backend.hcl
     └── australiaeast/
         ├── region.hcl
         └── prod/
@@ -72,13 +72,12 @@ The environment name itself is passed explicitly from each `terragrunt.stack.hcl
 
 ## Required Environment Variables
 
-To run Terragrunt locally, you need the following Azure authentication and state variables:
+To run Terragrunt locally, you need the following Azure authentication variables:
 
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_TENANT_ID`
-- `TG_STATE_RESOURCE_GROUP`
-- `TG_STATE_STORAGE_ACCOUNT`
-- `TG_STATE_CONTAINER`
+
+Terraform backend coordinates are versioned in the Terragrunt configuration under `live/*/backend.hcl`.
 
 ## Workload-Specific Environment Variables
 
@@ -114,12 +113,6 @@ The workflow is located in [`.github/workflows/provision-myapp-infra.yml`](.gith
 
 > 💡 **Security Recommendation:** Currently, application secrets like `STATUSPAGE_API_KEY` are passed via GitHub Secrets. For enterprise production workloads, it is highly recommended to migrate these to **Azure Key Vault**. You can grant the Container App's Managed Identity `Key Vault Secrets User` access and reference the secret natively, keeping plain-text values entirely out of GitHub Actions and Terraform state files.
 
-### Required GitHub Variables (Repository or Environment level)
-
-- `TG_STATE_RESOURCE_GROUP`
-- `TG_STATE_STORAGE_ACCOUNT`
-- `TG_STATE_CONTAINER`
-
 ### Optional GitHub Variables
 
 - `TERRAFORM_VERSION`
@@ -133,6 +126,6 @@ The workflow is located in [`.github/workflows/provision-myapp-infra.yml`](.gith
 1. Create GitHub Environments named `dev` and `prod-aue`.
 2. Add approval rules for the production environment.
 3. Configure Azure federated credentials to trust the repo and those specific environments.
-4. Set the workload-specific variables and secrets (`STATUSPAGE_API_KEY`, image tags) on the environments that need them. The PR `plan` job only sees repository-level `vars` and `secrets`, so keep values there unless the workflow is changed to attach GitHub environments during PR plans.
+4. Set the workload-specific variables and secrets (`STATUSPAGE_API_KEY`, image tags) on the environments that need them. The PR `plan` job only sees repository-level `vars` and `secrets`, so keep shared workload values there unless the workflow is changed to attach GitHub environments during PR plans.
 
 If `STATUSPAGE_API_KEY` is unset, the app config omits that secret entirely rather than sending an empty secret to Azure Container Apps.

@@ -62,11 +62,7 @@ Each environment gets a separate state key based on the stack path:
 - `live/prod/australiaeast/prod/app-env/terraform.tfstate`
 - `live/prod/australiaeast/prod/myapp/terraform.tfstate`
 
-The backend values come from:
-
-- `TG_STATE_RESOURCE_GROUP`
-- `TG_STATE_STORAGE_ACCOUNT`
-- `TG_STATE_CONTAINER`
+The backend values are versioned in `live/*/backend.hcl` and read by the root [root.hcl](/home/guille/dev/aca-infra/root.hcl).
 
 This repo includes [init-azure-state.sh](/home/guille/dev/aca-infra/scripts/init-azure-state.sh) to bootstrap the backend resource group, storage account, and blob container.
 
@@ -85,12 +81,7 @@ Script defaults:
 - `STATE_RG=rg-aca-terraform-state`
 - `STATE_CONTAINER=tfstate`
 
-The script prints the values to store in GitHub configuration:
-
-- `AZURE_SUBSCRIPTION_ID`
-- `TG_STATE_RESOURCE_GROUP`
-- `TG_STATE_STORAGE_ACCOUNT`
-- `TG_STATE_CONTAINER`
+The script prints shell exports such as `TG_STATE_RESOURCE_GROUP`, `TG_STATE_STORAGE_ACCOUNT`, and `TG_STATE_CONTAINER`. Use those values to populate the checked-in backend settings in `live/*/backend.hcl`.
 
 Microsoft Learn backend reference:
 
@@ -183,11 +174,11 @@ az storage container create \
   --auth-mode login
 ```
 
-Then set these in GitHub:
+Then copy these values into the relevant `backend.hcl` file:
 
-- `TG_STATE_RESOURCE_GROUP`
-- `TG_STATE_STORAGE_ACCOUNT`
-- `TG_STATE_CONTAINER`
+- `state_resource_group`
+- `state_storage_account`
+- `state_container`
 
 ### 3. Create A Microsoft Entra App For GitHub Actions
 
@@ -323,9 +314,6 @@ Repository-level secrets:
 
 Repository-level variables:
 
-- `TG_STATE_RESOURCE_GROUP`
-- `TG_STATE_STORAGE_ACCOUNT`
-- `TG_STATE_CONTAINER`
 - `MYAPP_IMAGE`
 - `MYAPP_REGISTRY_SERVER` (optional)
 - `MYAPP_ACR_ID` (optional)
@@ -336,7 +324,7 @@ Environment-level secrets:
 
 - `STATUSPAGE_API_KEY`
 
-Important: the pull request `plan` job does not attach a GitHub `environment`, so it can only read repository-level `vars` and `secrets`. Keep `MYAPP_*`, backend settings, and Terraform/Terragrunt version pins at repository scope unless the workflow is changed to attach an environment during PR plans.
+Important: the pull request `plan` job does not attach a GitHub `environment`, so it can only read repository-level `vars` and `secrets`. Keep `MYAPP_*` and Terraform/Terragrunt version pins at repository scope unless the workflow is changed to attach an environment during PR plans.
 
 ## Local Testing
 
@@ -348,9 +336,6 @@ az account set --subscription "<subscription-id>"
 
 export AZURE_SUBSCRIPTION_ID="<subscription-id>"
 export AZURE_TENANT_ID="<tenant-id>"
-export TG_STATE_RESOURCE_GROUP="<state-rg>"
-export TG_STATE_STORAGE_ACCOUNT="<state-storage-account>"
-export TG_STATE_CONTAINER="tfstate"
 
 export MYAPP_IMAGE="ghcr.io/example/myapp:dev"
 export STATUSPAGE_API_KEY="replace-me"

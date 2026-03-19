@@ -60,7 +60,7 @@ The architecture follows a "Folder-based Hierarchy."
 
 ### The Hierarchy
 The folder structure **is** the configuration. Instead of large variable files, we use small `.hcl` files at each level:
-1.  **Subscription Layer** (`live/non-prod/subscription.hcl`): Defines the Azure billing boundary.
+1.  **Backend Layer** (`live/non-prod/backend.hcl`): Defines the Terraform state backend coordinates for that top-level environment group.
 2.  **Region Layer** (`live/non-prod/australiaeast/region.hcl`): Defines the Azure `location`.
 3.  **Environment Layer** (`live/non-prod/australiaeast/dev/terragrunt.stack.hcl`): The environment entrypoint that composes deployable units and sets environment-specific overrides such as `environment = "dev"`.
 4.  **Unit Layer** (`live/units/myapp/terragrunt.hcl`): The reusable Terragrunt wrapper that maps stack `values` into Terraform inputs and dependencies.

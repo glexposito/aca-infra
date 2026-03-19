@@ -20,7 +20,7 @@ live/
 └── [subscription] / [region] / [environment]
 ```
 
-*   **Subscription (`live/non-prod/`, `live/prod/`):** Represents the Azure Subscription boundary. This provides the highest level of isolation for security and billing. Contains a `subscription.hcl` file.
+*   **Top-Level Environment Group (`live/non-prod/`, `live/prod/`):** Represents the highest isolation boundary in this repo. It contains a `backend.hcl` file with the Terraform state backend coordinates for that group.
 *   **Region (`australiaeast/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
 *   **Environment (`dev/`, `prod/`):** The logical deployment stage. Contains a `terragrunt.stack.hcl` entrypoint.
 *   **Unit Definitions (`live/units/`):** Reusable Terragrunt unit wrappers that map stack `values` into Terraform module inputs and dependencies.
@@ -37,13 +37,13 @@ live/
 │   └── myapp/
 │       └── terragrunt.hcl      # Shared app unit wrapper
 ├── non-prod/
-│   ├── subscription.hcl         # Defines subscription_name = "non-prod"
+│   ├── backend.hcl              # Defines state backend settings for non-prod
 │   └── australiaeast/
 │       ├── region.hcl           # Defines location = "australiaeast"
 │       ├── dev/
 │       │   └── terragrunt.stack.hcl
 └── prod/
-    ├── subscription.hcl         # Defines subscription_name = "prod"
+    ├── backend.hcl              # Defines state backend settings for prod
     ├── australiaeast/
     │   ├── region.hcl           # Defines location = "australiaeast"
     │   └── prod/
