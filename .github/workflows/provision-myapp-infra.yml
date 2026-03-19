@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: "Comma-separated environments: dev, prod-aue"
+        description: "Comma-separated environments: dev, prod-weu"
         required: true
         type: string
         default: "dev"
@@ -52,7 +52,7 @@ jobs:
 
           raw = os.environ["INPUT_TARGETS"]
           command = os.environ["INPUT_COMMAND"]
-          allowed = ["dev", "prod-aue"]
+          allowed = ["dev", "prod-weu"]
 
           parts = [p.strip() for p in raw.split(",") if p.strip()]
           if not parts:
@@ -67,10 +67,10 @@ jobs:
           ordered = []
           for env in allowed:
             if env in parts and not any(o['environment'] == env for o in ordered):
-              if env == 'prod-aue':
-                ordered.append({'environment': 'prod-aue', 'working_dir': 'live/prod/australiaeast/prod'})
+              if env == 'prod-weu':
+                ordered.append({'environment': 'prod-weu', 'working_dir': 'live/prod/westeurope/prod'})
               else:
-                ordered.append({'environment': 'dev', 'working_dir': 'live/non-prod/australiaeast/dev'})
+                ordered.append({'environment': 'dev', 'working_dir': 'live/non-prod/westeurope/dev'})
 
           if command == "apply" and any(o['environment'].startswith('prod') for o in ordered) and len(ordered) > 1:
             print("Refusing to apply prod together with other environments.", file=sys.stderr)
@@ -90,9 +90,9 @@ jobs:
       matrix:
         include:
           - environment: dev
-            working_dir: live/non-prod/australiaeast/dev
-          - environment: prod-aue
-            working_dir: live/prod/australiaeast/prod
+            working_dir: live/non-prod/westeurope/dev
+          - environment: prod-weu
+            working_dir: live/prod/westeurope/prod
     environment: ${{ matrix.environment }}
     concurrency:
       group: myapp-plan-${{ matrix.environment }}

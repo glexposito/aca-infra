@@ -19,7 +19,7 @@ live/
 ```
 
 *   **Top-Level Environment Group (`live/non-prod/`, `live/prod/`):** Represents the highest isolation boundary in this repo. It contains a `backend.hcl` file with the Terraform state backend coordinates for that group.
-*   **Region (`australiaeast/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
+*   **Region (`westeurope/`):** Represents the physical Azure region where resources are deployed. Contains a `region.hcl` file.
 *   **Environment (`dev/`, `prod/`):** The logical deployment stage. Contains a `terragrunt.stack.hcl` entrypoint.
 *   **Unit Definitions (`live/units/`):** Reusable Terragrunt unit wrappers that map stack `values` into Terraform module inputs and dependencies.
 
@@ -34,21 +34,21 @@ live/
 │       └── terragrunt.hcl      # Shared app unit wrapper
 ├── non-prod/
 │   ├── backend.hcl              # Defines state backend settings for non-prod
-│   └── australiaeast/
-│       ├── region.hcl           # Defines location = "australiaeast"
+│   └── westeurope/
+│       ├── region.hcl           # Defines location = "westeurope"
 │       ├── dev/
 │       │   └── terragrunt.stack.hcl
 └── prod/
     ├── backend.hcl              # Defines state backend settings for prod
-    ├── australiaeast/
-    │   ├── region.hcl           # Defines location = "australiaeast"
+    ├── westeurope/
+    │   ├── region.hcl           # Defines location = "westeurope"
     │   └── prod/
     │       └── terragrunt.stack.hcl
 ```
 
 ## How It Works
 
-1.  **Isolated State Files:** Every generated unit still gets its own isolated Terraform state file in the Azure Storage backend based on its final path (for example `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
+1.  **Isolated State Files:** Every generated unit still gets its own isolated Terraform state file in the Azure Storage backend based on its final path (for example `live/non-prod/westeurope/dev/myapp/terraform.tfstate`). This physically limits the blast radius: a destructive command run in `dev` cannot corrupt the `prod` state file.
 2.  **Shared Unit Logic:** Environment-level `terragrunt.stack.hcl` files compose shared Terragrunt unit wrappers from `live/units/`. Those units read `region.hcl` from their generated location, while the environment name is passed explicitly from the stack file.
 3.  **Platform vs. Application Separation (Landlord/Tenant Model):** We strictly separate the underlying shared environment from the applications that run on it.
     *   **The App Environment (`app-env`):** Acts as the "Landlord." It is deployed once per environment/region and provisions the shared foundation: the Resource Group, the Log Analytics Workspace, and the Container App Environment (the server cluster). In this repo, those resources currently use the shared stack token `core`.
@@ -57,7 +57,7 @@ live/
     *Example:* If you need to add a second microservice (e.g., `user-api`), you add another unit to the environment stack next to the others. It will automatically deploy into the existing `app-env`, significantly reducing Azure costs and simplifying architecture:
 
     ```text
-    live/non-prod/australiaeast/dev/
+    live/non-prod/westeurope/dev/
     └── terragrunt.stack.hcl     <-- Defines app-env, myapp, user-api units
     ```
 
@@ -69,22 +69,22 @@ The biggest advantage of this structure is how easy it is to scale.
 
 ### Scenario: Adding a New Region (e.g., Europe)
 
-If you need to deploy the `prod` environment for `myapp` to a new region like Europe (`westeurope` in Azure), you simply replicate the folder structure.
+If you need to deploy the `prod` environment for `myapp` to a new region beyond the current `westeurope` setup, you simply replicate the folder structure.
 
 **Step 1: Create the new region and environment directories.**
 Navigate to the appropriate subscription (e.g., `prod`) and create the new region folder, followed by the environment folder.
 
 ```bash
-mkdir -p live/prod/westeurope/prod
+mkdir -p live/prod/northeurope/prod
 ```
 
 **Step 2: Create the `region.hcl` file.**
 Create the region variables file in the new region folder.
 
 ```bash
-# live/prod/westeurope/region.hcl
+# live/prod/northeurope/region.hcl
 locals {
-  location = "westeurope"
+  location = "northeurope"
 }
 ```
 
@@ -92,7 +92,7 @@ locals {
 Copy the existing stack file from the old region to the new region.
 
 ```bash
-cp live/prod/australiaeast/prod/terragrunt.stack.hcl live/prod/westeurope/prod/
+cp live/prod/westeurope/prod/terragrunt.stack.hcl live/prod/northeurope/prod/
 ```
 
 **Step 4: Ensure the region short code exists.**
@@ -108,7 +108,7 @@ terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 ```
 
-Because of the folder isolation, this deployment is completely independent of the `australiaeast` deployment.
+Because of the folder isolation, this deployment is completely independent of the `westeurope` deployment.
 
 ---
 
@@ -122,7 +122,7 @@ To safely decommission an environment, follow this two-step process:
 Before removing any code, navigate into the specific environment root and instruct Terragrunt to destroy the physical resources.
 
 ```bash
-cd live/prod/australiaeast/prod
+cd live/prod/westeurope/prod
 terragrunt run --all --non-interactive destroy -- -auto-approve -no-color
 ```
 *Terragrunt will read the state file, determine exactly what resources exist in Azure, and safely delete them.*
@@ -132,7 +132,7 @@ Only **after** `terragrunt destroy` has successfully completed and verified the 
 
 1.  Delete the directory from your repository:
     ```bash
-    rm -rf live/prod/australiaeast
+    rm -rf live/prod/westeurope
     ```
 2.  Update your CI/CD pipelines (e.g., `.github/workflows/*.yml`) to remove any references or matrix targets pointing to the deleted environment.
 3.  Commit and push the changes.

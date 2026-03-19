@@ -24,13 +24,13 @@ live/
 │       └── terragrunt.hcl
 ├── non-prod/
 │   ├── backend.hcl
-│   └── australiaeast/
+│   └── westeurope/
 │       ├── region.hcl
 │       └── dev/
 │           └── terragrunt.stack.hcl
 └── prod/
     ├── backend.hcl
-    └── australiaeast/
+    └── westeurope/
         ├── region.hcl
         └── prod/
             └── terragrunt.stack.hcl
@@ -53,7 +53,7 @@ Azure naming conventions are generated dynamically from the shared stack token, 
 - Shared Log Analytics workspace: `law-<shared-stack>-<env>-<region>`
 - Application Container App: `ca-<app>-<env>-<region>`
 
-*Current app token: `myapp`. Current shared environment stack token: `core`. Current region shortcode in use: `aue` for Australia East.*
+*Current app token: `myapp`. Current shared environment stack token: `core`. Current region shortcode in use: `weu` for West Europe.*
 
 ## Terragrunt Composition
 
@@ -90,7 +90,7 @@ The image reference and optional registry settings are versioned in each environ
 For full environment deployment, run from the environment root so Terragrunt can generate and apply `app-env` before `myapp`:
 
 ```bash
-cd live/non-prod/australiaeast/dev
+cd live/non-prod/westeurope/dev
 terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
@@ -102,7 +102,7 @@ terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 The workflow is located in [`.github/workflows/provision-myapp-infra.yml`](.github/workflows/provision-myapp-infra.yml).
 
 - **Pull Requests**: Automatically runs `terragrunt run --all plan` from each environment root.
-- **Manual Dispatch**: Allows applying changes to specific environments such as `dev` or `prod-aue`.
+- **Manual Dispatch**: Allows applying changes to specific environments such as `dev` or `prod-weu`.
 
 ### Required GitHub Secrets
 
@@ -119,7 +119,7 @@ Terraform and Terragrunt versions are pinned directly in the workflow file.
 
 ### Recommended GitHub Setup
 
-1. Create GitHub Environments named `dev` and `prod-aue`.
+1. Create GitHub Environments named `dev` and `prod-weu`.
 2. Add approval rules for the production environment.
 3. Configure Azure federated credentials to trust the repo and those specific environments.
 4. Set the workload-specific secrets (`STATUSPAGE_API_KEY`) on the environments that need them.

@@ -73,7 +73,7 @@ variable "revision_mode" {
 **Observation:** The solution currently uses local module paths (e.g., `source = "../modules/aca-app"`). While excellent for development, it lacks the immutability needed for enterprise scale.
 **Recommendation:** 
 - **Versioned Root Modules:** Move Terraform modules to a dedicated repository and reference them via versioned Git tags (e.g., `source = "git::...//modules/aca-app?ref=v1.2.0"`). This ensures that a change in `dev` cannot accidentally impact `prod` without an explicit version bump.
-- **Multi-Stack Orchestration:** Leverage `terragrunt run-all` from root directories to automate the deployment of entire environments (e.g., `non-prod/australiaeast/dev/`) in the correct dependency order.
+- **Multi-Stack Orchestration:** Leverage `terragrunt run-all` from root directories to automate the deployment of entire environments (e.g., `non-prod/westeurope/dev/`) in the correct dependency order.
 
 ---
 

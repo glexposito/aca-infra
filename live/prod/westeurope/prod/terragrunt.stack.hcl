@@ -24,6 +24,8 @@ unit "myapp" {
     platform_path   = "../app-env"
     name            = "myapp"
     container_image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+    registry_server = null
+    acr_id          = null
     min_replicas    = 1
     max_replicas    = 1
   }

@@ -12,8 +12,8 @@ This layout follows a common Terragrunt split:
 In this repo:
 
 - `modules/aca-app`: reusable Azure Container Apps module
-- `live/non-prod/australiaeast/dev`: dev deployment root
-- `live/prod/australiaeast/prod`: production deployment root for Australia East
+- `live/non-prod/westeurope/dev`: dev deployment root
+- `live/prod/westeurope/prod`: production deployment root for West Europe
 
 Azure resource names follow this pattern:
 
@@ -26,7 +26,7 @@ Current conventions in this repo:
 
 - shared stack token: `core`
 - app token: `myapp`
-- region code: `aue`
+- region code: `weu`
 
 `live` is a standard Terragrunt convention. It means these stacks are the concrete deployments, not reusable building blocks.
 
@@ -57,10 +57,10 @@ Terraform state is stored in Azure Storage using the `azurerm` backend from the 
 
 Each environment gets a separate state key based on the stack path:
 
-- `live/non-prod/australiaeast/dev/app-env/terraform.tfstate`
-- `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`
-- `live/prod/australiaeast/prod/app-env/terraform.tfstate`
-- `live/prod/australiaeast/prod/myapp/terraform.tfstate`
+- `live/non-prod/westeurope/dev/app-env/terraform.tfstate`
+- `live/non-prod/westeurope/dev/myapp/terraform.tfstate`
+- `live/prod/westeurope/prod/app-env/terraform.tfstate`
+- `live/prod/westeurope/prod/myapp/terraform.tfstate`
 
 The backend values are versioned in `live/*/backend.hcl` and read by the root [root.hcl](/home/guille/dev/aca-infra/root.hcl).
 
@@ -77,7 +77,7 @@ export STATE_SA="<globally-unique-storage-account>"
 
 Script defaults:
 
-- `LOCATION=australiaeast`
+- `LOCATION=westeurope`
 - `STATE_RG=rg-aca-terraform-state`
 - `STATE_CONTAINER=tfstate`
 
@@ -153,7 +153,7 @@ Example:
 ```bash
 export AZURE_SUBSCRIPTION_ID="<subscription-id>"
 export STATE_SA="<globally-unique-storage-account>"
-export LOCATION="australiaeast"
+export LOCATION="westeurope"
 export STATE_RG="rg-aca-terraform-state"
 export STATE_CONTAINER="tfstate"
 
@@ -266,7 +266,7 @@ repo:<owner>/<repo>:environment:<environment-name>
 Examples:
 
 - `repo:glexposito/aca-infra:environment:dev`
-- `repo:glexposito/aca-infra:environment:prod-aue`
+- `repo:glexposito/aca-infra:environment:prod-weu`
 
 Create one federated credential per environment.
 
@@ -292,7 +292,7 @@ az ad app federated-credential create \
   --parameters github-dev.json
 ```
 
-Repeat for `prod-aue`.
+Repeat for `prod-weu`.
 
 Microsoft Learn reference:
 
@@ -303,11 +303,11 @@ Microsoft Learn reference:
 Create these GitHub environments:
 
 - `dev`
-- `prod-aue`
+- `prod-weu`
 
 Recommended:
 
-- require approvals for `prod-aue`
+- require approvals for `prod-weu`
 - keep `dev` open for fast iteration
 
 ### 7. Add GitHub Secrets And Variables
@@ -340,7 +340,7 @@ export AZURE_TENANT_ID="<tenant-id>"
 
 export STATUSPAGE_API_KEY="replace-me"
 
-cd live/non-prod/australiaeast/dev
+cd live/non-prod/westeurope/dev
 terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
@@ -353,7 +353,7 @@ If local `plan` works, test GitHub Actions against `dev` first.
 Manual dispatch supports:
 
 - `targets=dev`
-- `targets=prod-aue`
+- `targets=prod-weu`
 
 The workflow intentionally rejects `apply` when a `prod-*` target is mixed with other environments.
 
@@ -362,7 +362,7 @@ The workflow intentionally rejects `apply` when a `prod-*` target is mixed with 
 This repo currently keeps:
 
 - `dev`: 30 days
-- `prod-aue`: 30 days
+- `prod-weu`: 30 days
 
 These are Log Analytics retention settings, not log volume caps.
 

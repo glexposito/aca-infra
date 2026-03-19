@@ -44,7 +44,7 @@ Infrastructure often has a natural order. You can't deploy an app until the envi
 
 ### Remote State Management
 Terragrunt automatically configures the remote state for each module based on its file path.
-- If a generated unit ends up at `live/non-prod/australiaeast/dev/myapp`, Terragrunt will automatically set the state key to `live/non-prod/australiaeast/dev/myapp/terraform.tfstate`.
+- If a generated unit ends up at `live/non-prod/westeurope/dev/myapp`, Terragrunt will automatically set the state key to `live/non-prod/westeurope/dev/myapp/terraform.tfstate`.
 
 ### Locals and Functions
 Terragrunt uses HCL functions to dynamically determine values:
@@ -61,8 +61,8 @@ The architecture follows a "Folder-based Hierarchy."
 ### The Hierarchy
 The folder structure **is** the configuration. Instead of large variable files, we use small `.hcl` files at each level:
 1.  **Backend Layer** (`live/non-prod/backend.hcl`): Defines the Terraform state backend coordinates for that top-level environment group.
-2.  **Region Layer** (`live/non-prod/australiaeast/region.hcl`): Defines the Azure `location`.
-3.  **Environment Layer** (`live/non-prod/australiaeast/dev/terragrunt.stack.hcl`): The environment entrypoint that composes deployable units and sets environment-specific overrides such as `environment = "dev"`.
+2.  **Region Layer** (`live/non-prod/westeurope/region.hcl`): Defines the Azure `location`.
+3.  **Environment Layer** (`live/non-prod/westeurope/dev/terragrunt.stack.hcl`): The environment entrypoint that composes deployable units and sets environment-specific overrides such as `environment = "dev"`.
 4.  **Unit Layer** (`live/units/myapp/terragrunt.hcl`): The reusable Terragrunt wrapper that maps stack `values` into Terraform inputs and dependencies.
 
 Terragrunt uses the environment stack to generate deployable units. Those units read `region.hcl` from their generated location and receive the environment name from stack values.
