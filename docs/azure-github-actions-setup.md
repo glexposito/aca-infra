@@ -115,10 +115,15 @@ Example:
 export AZURE_SUBSCRIPTION_ID="<subscription-id>"
 export AZURE_TENANT_ID="<tenant-id>"
 export GITHUB_OWNER="<owner>"
-export GITHUB_REPO="aca-infra"
+export GITHUB_REPO="platform-infra"
 export ENV_NAME="dev"
+export FEDERATED_CRED_NAME="github-platform-infra-dev"
 
 ./scripts/init-azure-oidc.sh
+```
+
+```bash
+AZURE_SUBSCRIPTION_ID="<subscription-id>" AZURE_TENANT_ID="<tenant-id>" GITHUB_OWNER="<owner>" GITHUB_REPO="platform-infra" ENV_NAME="dev" FEDERATED_CRED_NAME="github-platform-infra-dev" ./scripts/init-azure-oidc.sh
 ```
 
 The script prints the values to store in GitHub configuration:
