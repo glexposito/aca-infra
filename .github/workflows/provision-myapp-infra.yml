@@ -97,7 +97,7 @@ jobs:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      TG_PLAN_DIR: ${{ runner.temp }}/terragrunt-plans/${{ matrix.environment }}
+      TG_PLAN_DIR: ${{ github.workspace }}/.terragrunt-plans/${{ matrix.environment }}
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
