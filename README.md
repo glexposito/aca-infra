@@ -1,6 +1,6 @@
-# aca-infra
+# platform-infra
 
-Terragrunt/Terraform scaffold for deploying a containerized personal app to Azure Container Apps.
+Terragrunt proof of concept for Azure platform infrastructure, shared services, and environment provisioning.
 
 > [!WARNING]
 > This repository is a proof of concept.
