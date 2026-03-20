@@ -97,6 +97,7 @@ jobs:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TG_PLAN_DIR: ${{ runner.temp }}/terragrunt-plans/${{ matrix.environment }}
       STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
     steps:
       - name: Checkout
@@ -131,8 +132,10 @@ jobs:
         run: terragrunt run --all --non-interactive init
 
       - name: Terragrunt plan
-        run: terragrunt run --all --non-interactive plan -- -no-color
+        run: |
+          mkdir -p "$TG_PLAN_DIR"
+          terragrunt run --all --non-interactive --out-dir "$TG_PLAN_DIR" plan -- -no-color
 
       - name: Terragrunt apply
         if: inputs.command == 'apply'
-        run: terragrunt run --all --non-interactive apply -- -auto-approve -no-color
+        run: terragrunt run --all --non-interactive --out-dir "$TG_PLAN_DIR" apply -- -auto-approve -no-color
