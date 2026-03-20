@@ -24,15 +24,16 @@ unit "myapp-1" {
     container_image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
     min_replicas    = 1
     max_replicas    = 1
-    secret_environment_variables = {
-      STATUSPAGE_API_KEY = {
-        secret_name  = "statuspage-api-key"
-        secret_value = trimspace(get_env("STATUSPAGE_API_KEY", ""))
-      }
+    # secret_environment_variables = {
+    #   STATUSPAGE_API_KEY = {
+    #     secret_name  = "statuspage-api-key"
+    #     secret_value = trimspace(get_env("STATUSPAGE_API_KEY", ""))
+    #   }
+    #
       # EXTERNAL_API_KEY = {
       #   secret_name         = "external-api-key"
       #   key_vault_secret_id = "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.KeyVault/vaults/<vault>/secrets/external-api-key"
       # }
-    }
+    # }
   }
 }

@@ -27,7 +27,7 @@ unit "myapp-1" {
     secret_environment_variables = {
       TEST_SECRET = {
         secret_name  = "test-secret"
-        secret_value = trimspace(get_env("AZURE_TENANT_ID", ""))
+        secret_value = trimspace(get_env("ARM_TENANT_ID", ""))
       }
     }
   }
