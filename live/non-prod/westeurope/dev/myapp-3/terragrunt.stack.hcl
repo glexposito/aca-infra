@@ -18,7 +18,7 @@ unit "myapp-3" {
     container_image                = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
     resource_group_name            = local.resource_group_name
     container_app_environment_name = local.container_app_environment_name
-    min_replicas                   = 1
+    min_replicas                   = 0
     max_replicas                   = 1
   }
 }
