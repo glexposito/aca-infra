@@ -16,7 +16,7 @@ terraform {
 }
 
 dependency "platform" {
-  config_path = values.platform_path
+  config_path = try(values.platform_path, "")
   enabled     = local.use_platform_dependency
 
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "output"]
