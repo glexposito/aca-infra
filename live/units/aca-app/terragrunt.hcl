@@ -8,6 +8,7 @@ locals {
   environment     = values.environment
   location        = local.region_vars.locals.location
   location_short  = local.region_vars.locals.location_short
+  use_platform_dependency = try(values.platform_path, null) != null
 }
 
 terraform {
@@ -16,6 +17,7 @@ terraform {
 
 dependency "platform" {
   config_path = values.platform_path
+  enabled     = local.use_platform_dependency
 
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "output"]
   mock_outputs_merge_strategy_with_state  = "shallow"
@@ -27,8 +29,8 @@ dependency "platform" {
 }
 
 inputs = {
-  container_app_environment_id = dependency.platform.outputs.container_app_environment_id
-  resource_group_name          = dependency.platform.outputs.resource_group_name
+  container_app_environment_id = try(values.container_app_environment_id, dependency.platform.outputs.container_app_environment_id)
+  resource_group_name          = try(values.resource_group_name, dependency.platform.outputs.resource_group_name)
   location                     = local.location
   environment                  = local.environment
   name                         = local.app_name
