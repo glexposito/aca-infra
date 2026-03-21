@@ -19,9 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy ACA Image
     environment: dev
-    concurrency:
-      group: aca-image-deploy-dev-${{ env.CONTAINER_APP_NAME }}
-      cancel-in-progress: false
     steps:
       - name: Azure login
         uses: azure/login@v2.3.0
