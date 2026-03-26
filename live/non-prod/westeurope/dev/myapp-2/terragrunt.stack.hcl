@@ -11,7 +11,7 @@ unit "myapp-2" {
     container_ports = [
       {
         port = 80
-      }
+      },
       {
         port = 8080
       }
