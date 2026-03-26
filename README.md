@@ -13,19 +13,19 @@ Lean Terragrunt proof of concept for Azure platform and app infrastructure on Az
 
 ```text
 live/
-├── units/
-│   ├── rg/
-│   ├── aca-env/
-│   └── aca-app/
 ├── non-prod/
 │   └── westeurope/
 │       └── dev/
 │           ├── platform-noncritical/
 │           ├── myapp-1/
 │           └── myapp-3/
+units/
+├── rg/
+├── aca-env/
+└── aca-app/
 ```
 
-Reusable Terraform modules live in `modules/`. Reusable Terragrunt wrappers live in `live/units/`.
+Reusable Terraform modules live in `modules/`. Reusable Terragrunt wrappers live in `units/`.
 
 ## Naming
 

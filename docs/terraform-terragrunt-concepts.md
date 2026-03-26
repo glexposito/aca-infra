@@ -18,7 +18,7 @@ Terragrunt handles:
 - backend and provider generation
 - per-stack inputs
 - dependency wiring
-- repeated wrappers under [live/units](/home/guille/dev/platform-infra/live/units)
+- repeated wrappers under [units](/home/guille/dev/platform-infra/units)
 
 Each stack root has a `terragrunt.stack.hcl`.
 

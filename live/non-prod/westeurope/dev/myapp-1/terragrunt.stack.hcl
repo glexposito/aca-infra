@@ -1,5 +1,5 @@
 unit "myapp-1" {
-  source = "${dirname(find_in_parent_folders("root.hcl"))}/live/units/aca-app"
+  source = "${dirname(find_in_parent_folders("root.hcl"))}/units/aca-app"
   path   = "app"
 
   values = {

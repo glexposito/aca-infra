@@ -1,5 +1,5 @@
 unit "rg" {
-  source = "${dirname(find_in_parent_folders("root.hcl"))}/live/units/rg"
+  source = "${dirname(find_in_parent_folders("root.hcl"))}/units/rg"
   path   = "rg"
 
   values = {
@@ -8,7 +8,7 @@ unit "rg" {
 }
 
 unit "aca-env" {
-  source = "${dirname(find_in_parent_folders("root.hcl"))}/live/units/aca-env"
+  source = "${dirname(find_in_parent_folders("root.hcl"))}/units/aca-env"
   path   = "aca-env"
 
   values = {

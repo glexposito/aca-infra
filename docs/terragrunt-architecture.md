@@ -6,15 +6,16 @@ The live layout is intentionally small:
 - region: `westeurope`
 - environment: `dev`
 - stack: `platform-noncritical`, `myapp-*`
-- reusable units: `live/units/*`
+- reusable units: `units/*`
 
 ```text
 live/
-├── units/
-│   ├── rg/
-│   ├── aca-env/
-│   └── aca-app/
 └── <environment-group>/<region>/<environment>/<stack>
+
+units/
+├── rg/
+├── aca-env/
+└── aca-app/
 ```
 
 ## Stack Split
