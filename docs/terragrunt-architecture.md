@@ -3,9 +3,9 @@
 The live layout is intentionally small:
 
 - environment group: `live/non-prod`
-- region: `westeurope`
+- region: `southeastasia`
 - environment: `dev`
-- stack: `platform-noncritical`, `myapp-*`
+- stack: `platform-nc`, `myapp-*`
 - reusable units: `units/*`
 
 ```text
@@ -20,7 +20,7 @@ units/
 
 ## Stack Split
 
-`platform-noncritical` owns shared resources:
+`platform-nc` owns shared resources:
 
 - resource group
 - Log Analytics workspace

@@ -8,17 +8,17 @@ Lean Terragrunt proof of concept for Azure platform and app infrastructure on Az
 
 ## What It Does
 
-- `platform-noncritical/` manages shared Azure resources.
+- `platform-nc/` manages shared Azure resources.
 - `myapp-*` manages one Container App per stack.
 
 ```text
 live/
 ├── non-prod/
-│   └── westeurope/
+│   └── southeastasia/
 │       └── dev/
-│           ├── platform-noncritical/
+│           ├── platform-nc/
 │           ├── myapp-1/
-│           └── myapp-3/
+│           └── ...
 units/
 ├── rg/
 ├── aca-env/
@@ -34,8 +34,8 @@ Reusable Terraform modules live in `modules/`. Reusable Terragrunt wrappers live
 - Log Analytics workspace: `law-<shared-stack>-<env>-<region>`
 - Container App: `ca-<app>-<env>-<region>`
 
-Current shared stack token: `platform-noncritical`  
-Current region short code: `weu`
+Current shared stack token: `platform-nc`  
+Current region short code: `sea`
 
 ## Local Usage
 
@@ -49,7 +49,7 @@ az account set --subscription "<subscription-id>"
 Deploy the platform stack:
 
 ```bash
-cd live/non-prod/westeurope/dev/platform-noncritical
+cd live/non-prod/southeastasia/dev/platform-nc
 terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
@@ -59,7 +59,7 @@ terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 Deploy an app stack:
 
 ```bash
-cd live/non-prod/westeurope/dev/myapp-3
+cd live/non-prod/southeastasia/dev/myapp-1
 terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
@@ -70,8 +70,7 @@ Workload settings such as `container_image`, scale settings, ingress, probes, en
 
 Current app examples:
 
-- `myapp-1` uses HTTP liveness and readiness probes against the hello-world image.
-- `myapp-3` uses `nginx:stable`, external ingress, and HTTP liveness and readiness probes on port `80`.
+- `myapp-1` uses `nginx:stable`, external ingress, and HTTP liveness and readiness probes on port `80`.
 
 Secrets can use a direct value or a Key Vault reference:
 
@@ -91,7 +90,7 @@ secret_environment_variables = {
 
 ## GitHub Actions
 
-- [`.github/workflows/provision-platform.yml`](.github/workflows/provision-platform.yml) runs Terragrunt for `platform-noncritical`
+- [`.github/workflows/provision-platform.yml`](.github/workflows/provision-platform.yml) runs Terragrunt for `platform-nc`
 - [`.github/workflows/deploy-app.yml`](.github/workflows/deploy-app.yml) runs Terragrunt for one app stack
 
 Terragrunt workflows recalculate at `apply` time instead of reusing saved plan files.

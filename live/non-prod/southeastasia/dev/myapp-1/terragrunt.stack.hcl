@@ -1,11 +1,11 @@
-unit "myapp-3" {
+unit "myapp-1" {
   source = "${dirname(find_in_parent_folders("root.hcl"))}/units/aca-app"
   path   = "app"
 
   values = {
-    name                           = "myapp-3"
-    resource_group_name            = "rg-platform-noncritical-dev-weu"
-    container_app_environment_name = "cae-platform-noncritical-dev-weu"
+    name                           = "myapp-1"
+    resource_group_name            = "rg-platform-nc-dev-sea"
+    container_app_environment_name = "cae-platform-nc-dev-sea"
     container_image                = "nginx:stable"
     min_replicas                   = 1
     max_replicas                   = 1

@@ -14,7 +14,7 @@ Required environment variables:
   STATE_SA                Globally unique Azure Storage Account name
 
 Optional environment variables:
-  LOCATION                Azure region (default: westeurope)
+  LOCATION                Azure region (default: southeastasia)
   STATE_RG                Resource group for backend resources (default: rg-aca-terraform-state)
   STATE_CONTAINER         Blob container for tfstate (default: tfstate)
 
@@ -33,7 +33,7 @@ fi
 : "${AZURE_SUBSCRIPTION_ID:?Set AZURE_SUBSCRIPTION_ID first}"
 : "${STATE_SA:?Set STATE_SA first}"
 
-LOCATION="${LOCATION:-westeurope}"
+LOCATION="${LOCATION:-southeastasia}"
 STATE_RG="${STATE_RG:-rg-aca-terraform-state}"
 STATE_CONTAINER="${STATE_CONTAINER:-tfstate}"
 

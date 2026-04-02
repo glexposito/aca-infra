@@ -3,7 +3,7 @@ unit "rg" {
   path   = "rg"
 
   values = {
-    name = "platform-noncritical"
+    name = "platform-nc"
   }
 }
 
@@ -13,7 +13,7 @@ unit "aca-env" {
 
   values = {
     resource_group_path             = "../rg"
-    name                            = "platform-noncritical"
+    name                            = "platform-nc"
     log_analytics_retention_in_days = 30
   }
 }

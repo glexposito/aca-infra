@@ -69,7 +69,7 @@ jobs:
             sys.exit(1)
 
           env_roots = {
-              "dev": ("dev", pathlib.Path("live/non-prod/westeurope/dev")),
+              "dev": ("dev", pathlib.Path("live/non-prod/southeastasia/dev")),
           }
 
           if env not in env_roots:
