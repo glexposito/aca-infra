@@ -18,7 +18,7 @@ unit "pulse-api" {
         transport        = "HTTP"
         port             = 8080
         path             = "/live"
-        initial_delay    = 1
+        initial_delay    = 5
         interval_seconds = 5
       }
     ]
@@ -27,7 +27,7 @@ unit "pulse-api" {
         transport        = "HTTP"
         port             = 8080
         path             = "/ready"
-        initial_delay    = 1
+        initial_delay    = 5
         interval_seconds = 5
       }
     ]
