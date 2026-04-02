@@ -7,7 +7,7 @@ unit "myapp-1" {
     resource_group_name            = "rg-platform-nc-dev-sea"
     container_app_environment_name = "cae-platform-nc-dev-sea"
     container_image                = "nginx:stable"
-    min_replicas                   = 1
+    min_replicas                   = 0
     max_replicas                   = 1
     ingress = {
       external_enabled = true
