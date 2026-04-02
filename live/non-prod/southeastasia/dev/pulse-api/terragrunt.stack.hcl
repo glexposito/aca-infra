@@ -18,8 +18,8 @@ unit "pulse-api" {
         transport        = "HTTP"
         port             = 8080
         path             = "/live"
-        initial_delay    = 5
-        interval_seconds = 5
+        initial_delay    = 10
+        interval_seconds = 30
       }
     ]
     readiness_probes = [
@@ -28,7 +28,7 @@ unit "pulse-api" {
         port             = 8080
         path             = "/ready"
         initial_delay    = 5
-        interval_seconds = 5
+        interval_seconds = 10
       }
     ]
   }
