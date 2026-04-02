@@ -9,7 +9,7 @@ Lean Terragrunt proof of concept for Azure platform and app infrastructure on Az
 ## What It Does
 
 - `platform-nc/` manages shared Azure resources.
-- `myapp-*` manages one Container App per stack.
+- app stack folders manage one Container App per stack.
 
 ```text
 live/
@@ -17,7 +17,7 @@ live/
 │   └── southeastasia/
 │       └── dev/
 │           ├── platform-nc/
-│           ├── myapp-1/
+│           ├── <app-stack>/
 │           └── ...
 units/
 ├── rg/
@@ -59,7 +59,7 @@ terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 Deploy an app stack:
 
 ```bash
-cd live/non-prod/southeastasia/dev/myapp-1
+cd live/non-prod/southeastasia/dev/<app-stack>
 terragrunt stack generate
 terragrunt run --all --non-interactive init
 terragrunt run --all --non-interactive plan -- -no-color
@@ -67,10 +67,6 @@ terragrunt run --all --non-interactive apply -- -auto-approve -no-color
 ```
 
 Workload settings such as `container_image`, scale settings, ingress, probes, environment variables, and secrets live in each stack `terragrunt.stack.hcl`.
-
-Current app examples:
-
-- `myapp-1` uses `nginx:stable`, external ingress, and HTTP liveness and readiness probes on port `80`.
 
 Secrets can use a direct value or a Key Vault reference:
 
